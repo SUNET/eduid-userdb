@@ -343,3 +343,9 @@ class LookupMobileProofingUserDB(ProofingUserDB):
 
     def __init__(self, db_uri, db_name='eduid_lookup_mobile_proofing'):
         ProofingUserDB.__init__(self, db_uri, db_name)
+
+
+class SecurityProofingUserDB(ProofingUserDB):
+
+    def __init__(self, db_uri, db_name='eduid_security'):
+        ProofingUserDB.__init__(self, db_uri, db_name)
