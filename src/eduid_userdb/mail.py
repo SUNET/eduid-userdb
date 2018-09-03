@@ -34,7 +34,7 @@
 
 import copy
 from six import string_types
-from eduid_userdb.element import PrimaryElement, PrimaryElementList
+from eduid_userdb.element import PrimaryElement, PrimaryElementList, ElementList, PrimaryElementViolation
 from eduid_userdb.exceptions import UserDBValueError
 
 __author__ = 'ft'
@@ -179,6 +179,28 @@ class MailAddressList(PrimaryElementList):
         """
         # implemented here to get proper type information
         return PrimaryElementList.find(self, email)
+
+    def remove(self, key):
+        """
+        Remove an existing MailAddress Element from the list.
+
+        Raises PrimaryElementViolation if the operation results in 0 primary
+        element in the list but there are confirmed elements.
+
+        Raises PrimaryElementViolation if the action would leave the MailAddressList with 0 verified/primary
+        MailAddress elements.
+
+        :param key: Key of element to remove
+        :type key: str | unicode
+        :return: ElementList
+        """
+        old_list = self._elements
+        ElementList.remove(self, key)
+        if self.count > 0 and self.verified.count == 0:
+            self._elements = copy.copy(old_list)
+            raise PrimaryElementViolation('Removing the last verified element is not allowed.')
+        self._check_primary(old_list)
+        return self
 
 
 def address_from_dict(data, raise_on_unknown = True):
