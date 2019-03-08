@@ -99,16 +99,12 @@ NEW_USER_EXAMPLE = {
         'created_by': 'signup',
         'created_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"), 
         'verified': True,
-        'verified_by': 'signup',
-        'verified_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"),
         'primary': True,
     }, {
         'email': 'johnsmith2@example.com',
         'created_by': 'dashboard',
         'created_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"), 
         'verified': False,
-        'verified_by': 'dashboard',
-        'verified_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"),
         'primary': False,
     }],
     'nins': [{
@@ -116,16 +112,12 @@ NEW_USER_EXAMPLE = {
         'created_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"), 
         'created_by': 'dashboard',
         'verified': True,
-        'verified_by': 'dashboard',
-        'verified_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"),
         'primary': True,
     }, {
         'number': '197801011235',
         'created_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"), 
         'created_by': 'dashboard',
         'verified': True,
-        'verified_by': 'dashboard',
-        'verified_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"),
         'primary': False,
     }],
     'phone': [{
@@ -133,20 +125,16 @@ NEW_USER_EXAMPLE = {
         'created_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"), 
         'created_by': 'dashboard',
         'verified': True,
-        'verified_by': 'dashboard',
-        'verified_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"),
         'primary': True,
     }, {
         'number': '+34 6096096096',
         'created_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"), 
         'created_by': 'dashboard',
         'verified': False,
-        'verified_by': 'dashboard',
-        'verified_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"),
         'primary': False,
     }],
     'passwords': [{
-        'id': ObjectId('112345678901234567890123'),
+        'credential_id': ObjectId('112345678901234567890123'),
         'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
         'created_by': 'signup',
         'created_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"), 
@@ -187,10 +175,8 @@ NEW_COMPLETED_SIGNUP_USER_EXAMPLE.update({
         {
             'created_ts': datetime.strptime("2017-01-04T15:47:27", "%Y-%m-%dT%H:%M:%S"),
             'verified': True,
-            'verified_by': 'signup',
             'created_by': 'signup',
             'primary': True,
-            'verified_ts': datetime.strptime("2017-01-04T16:47:27", "%Y-%m-%dT%H:%M:%S"),
             'email': 'johnsmith3@example.com'
         }
     ],
@@ -199,7 +185,7 @@ NEW_COMPLETED_SIGNUP_USER_EXAMPLE.update({
             'created_ts': datetime.strptime("2017-01-04T16:47:30", "%Y-%m-%dT%H:%M:%S"),
             'version': '2016-v1',
             'created_by': 'signup',
-            'id': ObjectId('912345678901234567890123')
+            'event_id': ObjectId('912345678901234567890123')
         }
     ],
     'eduPersonEntitlement': [],
@@ -207,7 +193,7 @@ NEW_COMPLETED_SIGNUP_USER_EXAMPLE.update({
         {
             'created_ts': datetime.strptime("2017-01-04T16:47:30", "%Y-%m-%dT%H:%M:%S"),
             'salt': '$NDNv1H1$2d465dcc9c68075aa095b646a98e2e3edb1c612c175ebdeaca6c9a55a0457833$32$32$',
-            'id': ObjectId('a12345678901234567890123'),
+            'credential_id': ObjectId('a12345678901234567890123'),
             'created_by': 'signup'
         }
     ],

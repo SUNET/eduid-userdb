@@ -31,52 +31,46 @@
 #
 # Author : Fredrik Thulin <fredrik@thulin.net>
 #
+from __future__ import annotations
 
 import copy
 from six import string_types
+from typing import Union, List
+
 from eduid_userdb.element import PrimaryElement, PrimaryElementList
-from eduid_userdb.exceptions import UserDBValueError
+from eduid_userdb.exceptions import UserDBValueError, UserHasUnknownData
 
 __author__ = 'ft'
 
 
 class PhoneNumber(PrimaryElement):
-    """
-    :param data: Phone number parameters from database
-    :param raise_on_unknown: Raise exception on unknown values in `data' or not.
+    """ Phone number """
+    def __init__(self, number=None, created_by=None,  created_ts=None,
+                 verified=False, verified_by=None, verified_ts=None,
+                 primary=False):
+        super().__init__(created_by=created_by, created_ts=created_ts,
+                         verified=verified,
+                         verified_by=verified_by,
+                         verified_ts=verified_ts,
+                         primary=primary,
+                         )
+        self.number = number
 
-    :type data: dict
-    :type raise_on_unknown: bool
-    """
-    def __init__(self, number=None, application=None, verified=False, created_ts=None,
-                 primary=False, data=None, raise_on_unknown = True):
-        data_in = data
-        data = copy.copy(data_in)  # to not modify callers data
+    @classmethod
+    def from_dict(cls, data) -> PhoneNumber:
+        _known_data = ['number', 'created_by', 'created_ts', 'verified', 'primary']
+        _leftovers = [x for x in data.keys() if x not in _known_data]
+        if _leftovers:
+            raise UserHasUnknownData('PhoneNumber has unknown data: {!r}'.format(
+                _leftovers,
+            ))
 
-        if data is None:
-            if created_ts is None:
-                created_ts = True
-            data = dict(number = number,
-                        created_by = application,
-                        created_ts = created_ts,
-                        verified = verified,
-                        primary = primary,
-                        )
-        if 'added_timestamp' in data:
-            # old userdb-style creation timestamp
-            data['created_ts'] = data.pop('added_timestamp')
-
-        if 'mobile' in data:
-            # old userdb-style entry
-            data['number'] = data.pop('mobile')
-
-        # CSRF tokens were accidentally put in the database some time ago
-        if 'csrf' in data:
-            del data['csrf']
-
-        PrimaryElement.__init__(self, data, raise_on_unknown, ignore_data = ['number'])
-        self.number = data.pop('number')
-
+        return cls(number=data['number'],
+                   created_by=data.get('created_by'),
+                   created_ts=data.get('created_ts'),
+                   verified=data['verified'],
+                   primary=data.get('primary', False),
+                   )
     # -----------------------------------------------------------------
     @property
     def key(self):
@@ -87,20 +81,18 @@ class PhoneNumber(PrimaryElement):
 
     # -----------------------------------------------------------------
     @property
-    def number(self):
+    def number(self) -> str:
         """
         This is the phone number.
 
         :return: phone number.
-        :rtype: str | unicode
         """
         return self._data['number']
 
     @number.setter
-    def number(self, value):
+    def number(self, value: str):
         """
         :param value: phone number.
-        :type value: str | unicode
         """
         if not isinstance(value, string_types):
             raise UserDBValueError("Invalid 'number': {!r}".format(value))
@@ -135,16 +127,17 @@ class PhoneNumberList(PrimaryElementList):
     one primary phone number in the list (except if the list is empty).
 
     :param phones: List of phone number records
-    :type phones: [dict | PhoneNumber]
     """
-    def __init__(self, phones, raise_on_unknown = True):
+    def __init__(self, phones: List[Union[dict, PhoneNumber]]):
         elements = []
 
         for this in phones:
             if isinstance(this, PhoneNumber):
                 phone = this
+            elif isinstance(this, dict):
+                phone = PhoneNumber.from_dict(this)
             else:
-                phone = phone_from_dict(this, raise_on_unknown)
+                raise UserDBValueError(f'Bad PhoneNumberList element {this!r}')
             elements.append(phone)
 
         PrimaryElementList.__init__(self, elements)
@@ -177,15 +170,6 @@ class PhoneNumberList(PrimaryElementList):
         PrimaryElementList.primary.fset(self, phone)
 
 
-def phone_from_dict(data, raise_on_unknown = True):
-    """
-    Create a PhoneNumber instance from a dict.
-
-    :param data: Phone number parameters from database
-    :param raise_on_unknown: Raise exception on unknown values in `data' or not.
-
-    :type data: dict
-    :type raise_on_unknown: bool
-    :rtype: PhoneNumber
-    """
-    return PhoneNumber(data=data, raise_on_unknown=raise_on_unknown)
+def phone_from_dict(data: dict) -> PhoneNumber:
+    """ Create a PhoneNumber instance from a dict. """
+    return PhoneNumber.from_dict(data)

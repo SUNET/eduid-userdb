@@ -1,3 +1,4 @@
 pymongo>=3.6
 nose
 six
+typing_extensions

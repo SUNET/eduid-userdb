@@ -79,7 +79,7 @@ class TestEventList(TestCase):
     def test_add_duplicate_key(self):
         data = deepcopy(_two_dict)
         data['version'] = 'other version'
-        dup = ToUEvent(data = data)
+        dup = ToUEvent.from_dict(data)
         with self.assertRaises(eduid_userdb.element.DuplicateElementViolation):
             self.two.add(dup)
 
@@ -89,10 +89,10 @@ class TestEventList(TestCase):
         self.assertEqual(this.to_list_of_dicts(), self.three.to_list_of_dicts())
 
     def test_add_wrong_type(self):
-        pwdict = {'id': bson.ObjectId(),
+        pwdict = {'credential_id': bson.ObjectId(),
                   'salt': 'foo',
                   }
-        new = Password(data=pwdict)
+        new = Password.from_dict(pwdict)
         with self.assertRaises(eduid_userdb.element.UserDBValueError):
             self.one.add(new)
 

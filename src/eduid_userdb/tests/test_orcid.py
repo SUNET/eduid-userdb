@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from copy import deepcopy
 from unittest import TestCase
 
 import eduid_userdb.exceptions
@@ -37,13 +37,20 @@ token_response = {
 class TestOrcid(TestCase):
 
     def test_id_token(self):
-        id_token_data = token_response['id_token']
+        id_token_data = deepcopy(token_response['id_token'])
         id_token_data['created_ts'] = True
         id_token_data['created_by'] = 'test'
-        id_token_1 = OidcIdToken(data=id_token_data, raise_on_unknown=False)
+
+        with self.assertRaises(eduid_userdb.exceptions.UserHasUnknownData):
+            OidcIdToken.from_dict(id_token_data)
+
+        # pop the unknown data
+        [id_token_data.pop(x) for x in ['at_hash', 'family_name', 'given_name', 'jti']]
+
+        id_token_1 = OidcIdToken.from_dict(id_token_data)
         id_token_2 = OidcIdToken(iss=id_token_data['iss'], sub=id_token_data['sub'], aud=id_token_data['aud'],
                                  exp=id_token_data['exp'], iat=id_token_data['iat'], nonce=id_token_data['nonce'],
-                                 auth_time=id_token_data['auth_time'], application='test')
+                                 auth_time=id_token_data['auth_time'], created_by='test')
 
         self.assertIsInstance(id_token_1, OidcIdToken)
         self.assertIsInstance(id_token_1.to_dict(), dict)
@@ -56,25 +63,35 @@ class TestOrcid(TestCase):
 
         self.assertEqual(dict_1, dict_2)
 
-        with self.assertRaises(eduid_userdb.exceptions.UserHasUnknownData):
-            OidcIdToken(data=id_token_data)
-
         with self.assertRaises(eduid_userdb.exceptions.UserDBValueError):
             OidcIdToken()
 
     def test_oidc_authz(self):
-        id_token_data = token_response['id_token']
+        id_token_data = deepcopy(token_response['id_token'])
         id_token_data['created_ts'] = True
         id_token_data['created_by'] = 'test'
-        id_token = OidcIdToken(data=token_response['id_token'], raise_on_unknown=False)
 
-        token_response['created_ts'] = True
-        token_response['created_by'] = 'test'
-        oidc_authz_1 = OidcAuthorization(data=token_response, raise_on_unknown=False)
-        oidc_authz_2 = OidcAuthorization(access_token=token_response['access_token'],
-                                         token_type=token_response['token_type'], id_token=id_token,
-                                         expires_in=token_response['expires_in'],
-                                         refresh_token=token_response['refresh_token'], application='test',
+        # pop unknown data
+        [id_token_data.pop(x) for x in ['at_hash', 'family_name', 'given_name', 'jti']]
+
+        id_token = OidcIdToken.from_dict(id_token_data)
+
+        _token_response = deepcopy(token_response)
+        _token_response['created_ts'] = True
+        _token_response['created_by'] = 'test'
+        _token_response['id_token'] = id_token_data
+
+        with self.assertRaises(eduid_userdb.exceptions.UserHasUnknownData):
+            OidcAuthorization.from_dict(_token_response)
+
+        # pop unknown data
+        [_token_response.pop(x) for x in ['name', 'orcid', 'scope']]
+
+        oidc_authz_1 = OidcAuthorization.from_dict(_token_response)
+        oidc_authz_2 = OidcAuthorization(access_token=_token_response['access_token'],
+                                         token_type=_token_response['token_type'], id_token=id_token,
+                                         expires_in=_token_response['expires_in'],
+                                         refresh_token=_token_response['refresh_token'], created_by='test',
                                          created_ts=True)
 
         self.assertIsInstance(oidc_authz_1, OidcAuthorization)
@@ -90,21 +107,24 @@ class TestOrcid(TestCase):
 
         self.assertEqual(dict_1, dict_2)
 
-        with self.assertRaises(eduid_userdb.exceptions.UserHasUnknownData):
-            OidcAuthorization(data=token_response)
-
         with self.assertRaises(eduid_userdb.exceptions.UserDBValueError):
             OidcAuthorization()
 
     def test_orcid(self):
-        token_response['id_token']['created_ts'] = True
-        token_response['id_token']['created_by'] = 'test'
-        token_response['created_ts'] = True
-        token_response['created_by'] = 'test'
-        oidc_authz = OidcAuthorization(data=token_response, raise_on_unknown=False)
-        orcid_1 = Orcid(id='https://op.example.org/user_orcid', oidc_authz=oidc_authz, application='test',
+        _token_response = deepcopy(token_response)
+        _token_response['id_token']['created_ts'] = True
+        _token_response['id_token']['created_by'] = 'test'
+        _token_response['created_ts'] = True
+        _token_response['created_by'] = 'test'
+
+        # pop unknown data
+        [_token_response.pop(x) for x in ['name', 'orcid', 'scope']]
+        [_token_response['id_token'].pop(x) for x in ['at_hash', 'family_name', 'given_name', 'jti']]
+
+        oidc_authz = OidcAuthorization.from_dict(_token_response)
+        orcid_1 = Orcid(id='https://op.example.org/user_orcid', oidc_authz=oidc_authz, created_by='test',
                         verified=True)
-        orcid_2 = Orcid(data=orcid_1.to_dict())
+        orcid_2 = Orcid.from_dict(orcid_1.to_dict())
 
         self.assertIsInstance(orcid_1, Orcid)
         self.assertIsInstance(orcid_1.to_dict(), dict)
@@ -128,7 +148,7 @@ class TestOrcid(TestCase):
         with self.assertRaises(eduid_userdb.exceptions.UserHasUnknownData):
             data = orcid_1.to_dict()
             data['unknown_key'] = 'test'
-            Orcid(data=data)
+            Orcid.from_dict(data)
 
         with self.assertRaises(eduid_userdb.exceptions.UserDBValueError):
             Orcid()

@@ -23,7 +23,7 @@ class TestUser(TestCase):
         self.data1 = {u'_id': ObjectId('547357c3d00690878ae9b620'),
                       u'eduPersonPrincipalName': u'guvat-nalif',
                       u'mail': u'user@example.net',
-                      u'mailAliases': [{u'added_timestamp': datetime.datetime(2014, 12, 18, 11, 25, 19, 804000),
+                      u'mailAliases': [{u'created_ts': datetime.datetime(2014, 12, 18, 11, 25, 19, 804000),
                                         u'email': u'user@example.net',
                                         u'verified': True}],
                       u'passwords': [{u'created_ts': datetime.datetime(2014, 11, 24, 16, 22, 49, 188000),
@@ -45,17 +45,17 @@ class TestUser(TestCase):
                       u'mail': u'some.one@gmail.com',
                       u'mailAliases': [{u'email': u'someone+test1@gmail.com',
                                         u'verified': True},
-                                       {u'added_timestamp': datetime.datetime(2014, 12, 17, 14, 35, 14, 728000),
+                                       {u'created_ts': datetime.datetime(2014, 12, 17, 14, 35, 14, 728000),
                                         u'email': u'some.one@gmail.com',
                                         u'verified': True}],
-                      u'mobile': [{u'added_timestamp': datetime.datetime(2014, 12, 18, 9, 11, 35, 78000),
-                                   u'mobile': u'+46702222222',
+                      u'mobile': [{u'created_ts': datetime.datetime(2014, 12, 18, 9, 11, 35, 78000),
+                                   u'number': u'+46702222222',
                                    u'primary': True,
                                    u'verified': True}],
                       u'passwords': [{u'created_ts': datetime.datetime(2015, 2, 11, 13, 58, 42, 327000),
-                                      u'id': ObjectId('54db60128a7d2a26e8690cda'),
+                                      u'credential_id': ObjectId('54db60128a7d2a26e8690cda'),
                                       u'salt': u'$NDNv1H1$db011fc$32$32$',
-                                      u'source': u'dashboard'},
+                                      u'created_by': u'dashboard'},
                                      {'version': 'U2F_V2',
                                       'app_id': 'unit test',
                                       'keyhandle': 'U2F SWAMID AL2',
@@ -87,43 +87,6 @@ class TestUser(TestCase):
 
     def test_mail_addresses(self):
         self.assertEqual(self.user1.mail_addresses.primary.email, self.data1['mailAliases'][0]['email'])
-
-    def test_mail_addresses_to_old_userdb_format(self):
-        """
-        Test that we get back a dict identical to the one we put in for old-style userdb data.
-        """
-        to_dict_result = self.user1.mail_addresses.to_list_of_dicts(old_userdb_format=True)
-        self.assertEqual(to_dict_result, self.data1['mailAliases'])
-
-    def test_phone_numbers(self):
-        """
-        Test that we get back a dict identical to the one we put in for old-style userdb data.
-        """
-        to_dict_result = self.user2.phone_numbers.to_list_of_dicts(old_userdb_format=True)
-        self.assertEqual(to_dict_result, self.data2['mobile'])
-
-    def test_passwords(self):
-        """
-        Test that we get back a dict identical to the one we put in for old-style userdb data.
-        """
-        self.assertEqual(self.user1.passwords.to_list_of_dicts(old_userdb_format=True), self.data1['passwords'])
-
-    def test_obsolete_attributes(self):
-        """
-        Test that some obsolete attributes don't cause parse failures.
-        """
-        data = self.data1
-        data['postalAddress'] = {'foo': 'bar'}
-        data['date'] = 'anything'
-        data['csrf'] = 'long and secret string'
-        data['mailAliases'][0]['verification_code'] = '123456789'
-        user = User(data)
-        self.assertEqual(self.user1._data, user._data)
-
-        data = self.data2
-        data['mobile'][0]['verification_code'] = '123456789'
-        user = User(data)
-        self.assertEqual(self.user2._data, user._data)
 
     def test_unknown_attributes(self):
         """
@@ -181,7 +144,7 @@ class TestUser(TestCase):
                 u'passwords': [{u'created_ts': datetime.datetime(2014, 9, 4, 8, 57, 7, 362000),
                                 u'credential_id': str(ObjectId()),
                                 u'salt': u'salt',
-                                u'source': u'dashboard'}],
+                                u'created_by': u'dashboard'}],
                 }
         user = User(data)
         self.assertEqual(mail, user.mail_addresses.primary.email)
@@ -198,7 +161,7 @@ class TestUser(TestCase):
                 u'passwords': [{u'created_ts': datetime.datetime(2014, 9, 4, 8, 57, 7, 362000),
                                 u'credential_id': str(ObjectId()),
                                 u'salt': u'salt',
-                                u'source': u'dashboard'}],
+                                u'created_by': u'dashboard'}],
                 }
         user = User(data)
         self.assertEqual(mail, user.mail_addresses.primary.email)
@@ -218,28 +181,10 @@ class TestUser(TestCase):
                 u'passwords': [{u'created_ts': datetime.datetime(2014, 9, 4, 8, 57, 7, 362000),
                                 u'credential_id': str(ObjectId()),
                                 u'salt': u'salt',
-                                u'source': u'dashboard'}],
+                                u'created_by': u'dashboard'}],
                 }
         user = User(data)
         self.assertEqual(new_mail, user.mail_addresses.primary.email)
-
-    def test_user_with_csrf_junk_in_mail_address(self):
-        """
-        For a long time, Dashboard leaked CSRF tokens into the mail address dicts.
-        """
-        mail = u'yahoo@example.com'
-        data = {u'_id': ObjectId(),
-                u'eduPersonPrincipalName': u'test-test',
-                u'mailAliases': [{u'email': mail,
-                u'verified': True,
-                u'csrf': u'6ae1d4e95305b72318a683883e70e3b8e302cd75'}],
-                u'passwords': [{u'created_ts': datetime.datetime(2014, 9, 4, 8, 57, 7, 362000),
-                                u'credential_id': str(ObjectId()),
-                                u'salt': u'salt',
-                                u'source': u'dashboard'}],
-               }
-        user = User(data)
-        self.assertEqual(mail, user.mail_addresses.primary.email)
 
     def test_to_dict(self):
         """
@@ -292,18 +237,16 @@ class TestUser(TestCase):
                 u'givenName': u'xxx',
                 u'mail': u'test@gmail.com',
                 u'mailAliases': [{u'email': u'test@gmail.com', u'verified': True}],
-                u'phone': [{u'csrf': u'47d42078719b8377db622c3ff85b94840b483c92',
-                             u'number': number1,
-                             u'primary': False,
-                             u'verified': False},
-                            {u'csrf': u'47d42078719b8377db622c3ff85b94840b483c92',
-                             u'number': number2,
-                             u'primary': False,
-                             u'verified': False}],
+                u'phone': [{u'number': number1,
+                            u'primary': False,
+                            u'verified': False},
+                           {u'number': number2,
+                            u'primary': False,
+                            u'verified': False}],
                 u'passwords': [{u'created_ts': datetime.datetime(2014, 6, 29, 17, 52, 37, 830000),
                                 u'credential_id': str(ObjectId()),
                                 u'salt': u'$NDNv1H1$foo$32$32$',
-                                u'source': u'dashboard'}],
+                                u'created_by': u'dashboard'}],
                 u'preferredLanguage': u'en',
                 u'surname': u'yyy',
                 }
@@ -322,18 +265,16 @@ class TestUser(TestCase):
                 u'givenName': u'xxx',
                 u'mail': u'test@gmail.com',
                 u'mailAliases': [{u'email': u'test@gmail.com', u'verified': True}],
-                u'phone': [{u'csrf': u'47d42078719b8377db622c3ff85b94840b483c92',
-                             u'number': number1,
-                             u'primary': False,
-                             u'verified': False},
-                            {u'csrf': u'47d42078719b8377db622c3ff85b94840b483c92',
-                             u'number': number2,
-                             u'primary': False,
-                             u'verified': True}],
+                u'phone': [{u'number': number1,
+                            u'primary': False,
+                            u'verified': False},
+                           {u'number': number2,
+                            u'primary': False,
+                            u'verified': True}],
                 u'passwords': [{u'created_ts': datetime.datetime(2014, 6, 29, 17, 52, 37, 830000),
                                 u'credential_id': str(ObjectId()),
                                 u'salt': u'$NDNv1H1$foo$32$32$',
-                                u'source': u'dashboard'}],
+                                u'created_by': u'dashboard'}],
                 u'preferredLanguage': u'en',
                 u'surname': u'yyy',
                 }
@@ -350,14 +291,13 @@ class TestUser(TestCase):
                 u'givenName': u'xxx',
                 u'mail': u'test@gmail.com',
                 u'mailAliases': [{u'email': u'test@gmail.com', u'verified': True}],
-                u'phone': [{u'csrf': u'47d42078719b8377db622c3ff85b94840b483c92',
-                            u'number': u'+9112345678',
+                u'phone': [{u'number': u'+9112345678',
                             u'primary': True,
                             u'verified': False}],
                 u'passwords': [{u'created_ts': datetime.datetime(2014, 6, 29, 17, 52, 37, 830000),
                                 u'credential_id': str(ObjectId()),
                                 u'salt': u'$NDNv1H1$foo$32$32$',
-                                u'source': u'dashboard'}],
+                                u'created_by': u'dashboard'}],
                 u'preferredLanguage': u'en',
                 u'surname': u'yyy',
                 }
@@ -382,9 +322,9 @@ class TestUser(TestCase):
                             }
                            ],
                 u'passwords': [{u'created_ts': datetime.datetime(2014, 6, 29, 17, 52, 37, 830000),
-                                u'id': ObjectId(),
+                                u'credential_id': ObjectId(),
                                 u'salt': u'$NDNv1H1$foo$32$32$',
-                                u'source': u'dashboard'}],
+                                u'created_by': u'dashboard'}],
                 }
         user = User(data)
         self.assertEqual(user.phone_numbers.primary.number, u'+22222222222')
@@ -394,7 +334,7 @@ class TestUser(TestCase):
         Basic test for user ToU.
         """
         tou_dict = \
-            {'id': ObjectId(),
+            {'event_id': ObjectId(),
              'event_type': 'tou_event',
              'version': '1',
              'created_by': 'unit test',
@@ -501,9 +441,9 @@ class TestUser(TestCase):
             "token_type": "bearer"
         }
         orcid = "user_orcid"
-        oidc_id_token = OidcIdToken(application='test', **id_token)
-        oidc_authz = OidcAuthorization(id_token=oidc_id_token, application='test', **oidc_data)
-        orcid_element = Orcid(id=orcid, oidc_authz=oidc_authz, application='test')
+        oidc_id_token = OidcIdToken(created_by='test', **id_token)
+        oidc_authz = OidcAuthorization(id_token=oidc_id_token, created_by='test', **oidc_data)
+        orcid_element = Orcid(id=orcid, oidc_authz=oidc_authz, created_by='test')
 
         user = User(self.data1)
         user.orcid = orcid_element

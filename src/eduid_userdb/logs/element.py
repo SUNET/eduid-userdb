@@ -17,17 +17,30 @@ logger = logging.getLogger(__name__)
 
 class LogElement(Element):
 
-    def __init__(self, created_by):
+    def __init__(self, created_by: str):
         """
         :param created_by: Application creating the log element
-
-        :type created_by: six.string_types
-
-        :return: LogElement object
-        :rtype: LogElement
         """
         self._required_keys = ['created_by', 'created_ts']
-        super(LogElement, self).__init__(data={'created_by': created_by, 'created_ts': True})
+        super().__init__(created_by=created_by, created_ts=True)
+
+    @property
+    def key(self):
+        """
+        Implement mandatory property 'key'.
+
+        We don't have a use case for this yet, so it will raise NotImplementedError.
+        """
+        raise NotImplementedError('Log elements does not have key')
+
+    @classmethod
+    def from_dict(cls, data):
+        """
+        Implement mandatory method from_dict.
+
+        We don't have a use case for this yet, so it will raise NotImplementedError.
+        """
+        raise NotImplementedError('Log elements does not have from_dict()')
 
     def validate(self):
         # Check that all keys are accounted for and that no string values are blank
@@ -61,7 +74,7 @@ class ProofingLogElement(LogElement):
         :return: ProofingLogElement object
         :rtype: ProofingLogElement
         """
-        super(ProofingLogElement, self).__init__(created_by)
+        super().__init__(created_by)
         self._required_keys.extend(['eduPersonPrincipalName', 'proofing_method', 'proofing_version'])
         self._data['eduPersonPrincipalName'] = user.eppn
         self._data['proofing_method'] = proofing_method
@@ -87,8 +100,7 @@ class NinProofingLogElement(ProofingLogElement):
         :return: NinProofingLogElement object
         :rtype: NinProofingLogElement
         """
-        super(NinProofingLogElement, self).__init__(user, created_by, proofing_method=proofing_method,
-                                                    proofing_version=proofing_version)
+        super().__init__(user, created_by, proofing_method=proofing_method, proofing_version=proofing_version)
         self._required_keys.extend(['nin', 'user_postal_address'])
         self._data['nin'] = nin
         self._data['user_postal_address'] = user_postal_address
@@ -127,8 +139,7 @@ class MailAddressProofing(ProofingLogElement):
         :return: MailAddressProofing object
         :rtype: MailAddressProofing
         """
-        super(MailAddressProofing, self).__init__(user, created_by, proofing_method='e-mail',
-                                                  proofing_version=proofing_version)
+        super().__init__(user, created_by, proofing_method='e-mail', proofing_version=proofing_version)
         self._required_keys.extend(['mail_address', 'reference'])
         self._data['mail_address'] = mail_address
         self._data['reference'] = reference
@@ -163,8 +174,7 @@ class PhoneNumberProofing(ProofingLogElement):
         :return: PhoneNumberProofing object
         :rtype: PhoneNumberProofing
         """
-        super(PhoneNumberProofing, self).__init__(user, created_by, proofing_method='sms',
-                                                  proofing_version=proofing_version)
+        super().__init__(user, created_by, proofing_method='sms', proofing_version=proofing_version)
         self._required_keys.extend(['phone_number', 'reference'])
         self._data['phone_number'] = phone_number
         self._data['reference'] = reference
@@ -207,8 +217,8 @@ class TeleAdressProofing(NinProofingLogElement):
         :return: TeleAdressProofing object
         :rtype: TeleAdressProofing
         """
-        super(TeleAdressProofing, self).__init__(user, created_by, nin, user_postal_address,
-                                                 proofing_method='TeleAdress', proofing_version=proofing_version)
+        super().__init__(user, created_by, nin, user_postal_address,
+                         proofing_method='TeleAdress', proofing_version=proofing_version)
         self._required_keys.extend(['reason', 'mobile_number'])
         self._data['reason'] = reason
         self._data['mobile_number'] = mobile_number
@@ -260,8 +270,8 @@ class TeleAdressProofingRelation(TeleAdressProofing):
         :return: TeleAdressProofingRelation object
         :rtype: TeleAdressProofingRelation
         """
-        super(TeleAdressProofingRelation, self).__init__(user, created_by, reason, nin, mobile_number,
-                                                         user_postal_address, proofing_version=proofing_version)
+        super().__init__(user, created_by, reason, nin, mobile_number,
+                         user_postal_address, proofing_version=proofing_version)
         self._required_keys.extend(['mobile_number_registered_to', 'registered_relation', 'registered_postal_address'])
         self._data['mobile_number_registered_to'] = mobile_number_registered_to
         self._data['registered_relation'] = registered_relation
@@ -304,8 +314,8 @@ class LetterProofing(NinProofingLogElement):
         :return: LetterProofing object
         :rtype: LetterProofing
         """
-        super(LetterProofing, self).__init__(user, created_by, nin, user_postal_address, proofing_method='letter',
-                                             proofing_version=proofing_version)
+        super().__init__(user, created_by, nin, user_postal_address, proofing_method='letter',
+                         proofing_version=proofing_version)
         self._required_keys.extend(['proofing_method', 'letter_sent_to', 'transaction_id'])
         self._data['letter_sent_to'] = letter_sent_to
         self._data['transaction_id'] = transaction_id
@@ -347,8 +357,8 @@ class SeLegProofing(NinProofingLogElement):
         :return: SeLegProofing object
         :rtype: SeLegProofing
         """
-        super(SeLegProofing, self).__init__(user, created_by, nin, user_postal_address, proofing_method='se-leg',
-                                            proofing_version=proofing_version)
+        super().__init__(user, created_by, nin, user_postal_address, proofing_method='se-leg',
+                         proofing_version=proofing_version)
         self._required_keys.extend(['proofing_method', 'vetting_by', 'transaction_id'])
         self._data['vetting_by'] = vetting_by
         self._data['transaction_id'] = transaction_id
@@ -392,10 +402,10 @@ class SeLegProofingFrejaEid(SeLegProofing):
         :return: SeLegProofingFrejaEid object
         :rtype: SeLegProofingFrejaEid
         """
-        super(SeLegProofingFrejaEid, self).__init__(user, created_by, nin, vetting_by='Freja eID',
-                                                    transaction_id=transaction_id,
-                                                    user_postal_address=user_postal_address,
-                                                    proofing_version=proofing_version)
+        super().__init__(user, created_by, nin, vetting_by='Freja eID',
+                         transaction_id=transaction_id,
+                         user_postal_address=user_postal_address,
+                         proofing_version=proofing_version)
         self._required_keys.extend(['opaque_data'])
         self._data['opaque_data'] = opaque_data
 
@@ -435,8 +445,7 @@ class OrcidProofing(ProofingLogElement):
         :return: ProofingLogElement object
         :rtype: ProofingLogElement
         """
-        super(OrcidProofing, self).__init__(user, created_by, proofing_method=proofing_method,
-                                            proofing_version=proofing_version)
+        super().__init__(user, created_by, proofing_method=proofing_method,proofing_version=proofing_version)
         self._required_keys.extend(['orcid', 'issuer', 'audience'])
         self._data['orcid'] = orcid
         self._data['issuer'] = issuer
@@ -480,8 +489,8 @@ class SwedenConnectProofing(NinProofingLogElement):
         :return: SwedenConnectProofing object
         :rtype: SwedenConnectProofing
         """
-        super(SwedenConnectProofing, self).__init__(user, created_by, nin, user_postal_address,
-                                                    proofing_method='swedenconnect', proofing_version=proofing_version)
+        super(self).__init__(user, created_by, nin, user_postal_address,
+                             proofing_method='swedenconnect', proofing_version=proofing_version)
         self._required_keys.extend(['issuer', 'authn_context_class'])
         self._data['issuer'] = issuer
         self._data['authn_context_class'] = authn_context_class
@@ -527,7 +536,7 @@ class MFATokenProofing(SwedenConnectProofing):
         :return: MFATokenProofing object
         :rtype: MFATokenProofing
         """
-        super(MFATokenProofing, self).__init__(user, created_by, nin, issuer, authn_context_class, user_postal_address,
-                                               proofing_version=proofing_version)
+        super().__init__(user, created_by, nin, issuer, authn_context_class, user_postal_address,
+                         proofing_version=proofing_version)
         self._required_keys.extend(['key_id'])
         self._data['key_id'] = key_id

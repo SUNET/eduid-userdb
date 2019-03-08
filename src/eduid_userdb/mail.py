@@ -1,5 +1,6 @@
 #
 # Copyright (c) 2015 NORDUnet A/S
+# Copyright (c) 2018 SUNET
 # All rights reserved.
 #
 #   Redistribution and use in source and binary forms, with or
@@ -31,11 +32,15 @@
 #
 # Author : Fredrik Thulin <fredrik@thulin.net>
 #
+from __future__ import annotations
 
 import copy
 from six import string_types
+from typing import Union, List
+from typing_extensions import Literal
+
 from eduid_userdb.element import PrimaryElement, PrimaryElementList
-from eduid_userdb.exceptions import UserDBValueError
+from eduid_userdb.exceptions import UserDBValueError, UserHasUnknownData
 
 __author__ = 'ft'
 
@@ -44,32 +49,32 @@ class MailAddress(PrimaryElement):
     """
     :param data: Mail address parameters from database
     :param raise_on_unknown: Raise exception on unknown values in `data' or not.
-
-    :type data: dict
-    :type raise_on_unknown: bool
     """
-    def __init__(self, email=None, application=None, verified=False, created_ts=None, primary=None,
-                 data=None, raise_on_unknown=True):
-        data_in = data
-        data = copy.copy(data_in)  # to not modify callers data
+    def __init__(self, email: str, created_by=None, created_ts=None,
+                 verified=False, verified_by=None, verified_ts=None,
+                 primary=False,
+                 ):
+        super().__init__(created_by=created_by, created_ts=created_ts,
+                         verified=verified,
+                         verified_by=verified_by,
+                         verified_ts=verified_ts,
+                         primary=primary,
+                         )
+        self.email = email
 
-        if data is None:
-            if created_ts is None:
-                created_ts = True
-            data = dict(email = email,
-                        created_by = application,
-                        created_ts = created_ts,
-                        verified = verified,
-                        primary = primary,
-                        )
-        if 'added_timestamp' in data:
-            # old userdb-style creation timestamp
-            data['created_ts'] = data.pop('added_timestamp')
-        # CSRF tokens were accidentally put in the database some time ago
-        if 'csrf' in data:
-            del data['csrf']
-        PrimaryElement.__init__(self, data, raise_on_unknown, ignore_data = ['email'])
-        self.email = data.pop('email')
+    @classmethod
+    def from_dict(cls, data) -> MailAddress:
+        _known_data = ['email', 'created_by', 'created_ts', 'verified', 'primary']
+        _leftovers = [x for x in data.keys() if x not in _known_data]
+        if _leftovers:
+            raise UserHasUnknownData(f'MailAddress has unknown data: {_leftovers}')
+
+        return cls(email=data['email'],
+                   created_by=data.get('created_by'),
+                   created_ts=data.get('created_ts'),
+                   verified=data['verified'],
+                   primary=data.get('primary', False),
+                   )
 
     # -----------------------------------------------------------------
     @property
@@ -118,7 +123,6 @@ class MailAddress(PrimaryElement):
         del old['primary']
         return old
 
-
 class MailAddressList(PrimaryElementList):
     """
     Hold a list of MailAddress instance.
@@ -128,16 +132,17 @@ class MailAddressList(PrimaryElementList):
     one primary e-mail address in the list (except if the list is empty).
 
     :param addresses: List of e-mail addresses
-    :type addresses: [dict | MailAddress]
     """
-    def __init__(self, addresses, raise_on_unknown = True):
+    def __init__(self, addresses: List[Union[dict, MailAddress]]):
         elements = []
 
         for this in addresses:
             if isinstance(this, MailAddress):
                 address = this
+            elif isinstance(this, dict):
+                address = MailAddress.from_dict(this)
             else:
-                address = address_from_dict(this, raise_on_unknown)
+                raise UserDBValueError(f'Bad MailAddressList element {this!r}')
             elements.append(address)
 
         PrimaryElementList.__init__(self, elements)
@@ -155,7 +160,7 @@ class MailAddressList(PrimaryElementList):
         return PrimaryElementList.primary.fget(self)
 
     @primary.setter
-    def primary(self, email):
+    def primary(self, email: str):
         """
         Mark email as the users primary MailAddress.
 
@@ -164,16 +169,14 @@ class MailAddressList(PrimaryElementList):
         loosing it's primary status.
 
         :param email: the key of the element to set as primary
-        :type  email: str | unicode
         """
         PrimaryElementList.primary.fset(self, email)
 
-    def find(self, email):
+    def find(self, email: str) -> Union[MailAddress, Literal[False]]:
         """
         Find an MailAddress from the element list, using the key.
 
         :param email: the e-mail address to look for in the list of elements
-        :type email: str | unicode
         :return: MailAddress instance if found, or False if none was found
         :rtype: MailAddress | False
         """
@@ -181,34 +184,6 @@ class MailAddressList(PrimaryElementList):
         return PrimaryElementList.find(self, email)
 
 
-def address_from_dict(data, raise_on_unknown = True):
-    """
-    Create a MailAddress instance from a dict.
-
-    :param data: Mail address parameters from database
-    :param raise_on_unknown: Raise exception on unknown values in `data' or not.
-
-    :type data: dict
-    :type raise_on_unknown: bool
-    :rtype: MailAddress
-    """
-    return MailAddress(data = data, raise_on_unknown = raise_on_unknown)
-
-
-def new(email, application, verified=False, created_ts=None):
-    """
-    Create a new MailAddress object.
-
-    :param email: E-mail address
-    :param application: Name of creating application ('signup', ...)
-    :param verified: Declare e-mail address verified/confirmed
-    :param created_ts: Timestamp of creation (or None to use current time)
-
-    :type email: str | unicode
-    :type application: str | unicode
-    :type verified: bool
-    :type created_ts: None | datetime.datetime
-
-    :return: New MailAddress instance
-    :rtype: MailAddress
-    """
+def address_from_dict(data: dict) -> MailAddress:
+    """ Create a MailAddress instance from a dict. """
+    return MailAddress.from_dict(data)

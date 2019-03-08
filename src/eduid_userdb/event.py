@@ -32,13 +32,16 @@
 #
 # Author : Fredrik Thulin <fredrik@thulin.net>
 #
-
+from __future__ import annotations
 import copy
 
 from bson import ObjectId
 from six import string_types
+from typing import Type, TypeVar, Union, Mapping, List
+
 from eduid_userdb.element import Element, ElementList, DuplicateElementViolation
 from eduid_userdb.exceptions import UserDBValueError, BadEvent, EventHasUnknownData
+
 
 
 class Event(Element):
@@ -47,34 +50,25 @@ class Event(Element):
 
     :type data: dict
     """
-    def __init__(self, application=None, created_ts=None, data=None, event_type=None, event_id=None,
-                 raise_on_unknown=True, ignore_data = None):
-        data_in = data
-        data = copy.copy(data_in)  # to not modify callers data
+    def __init__(self, created_by=None, created_ts=None, event_type=None, event_id=None):
+        super().__init__(created_by=created_by, created_ts=created_ts)
+        self.event_type = event_type
+        self.event_id = event_id
 
-        if data is None:
-            if created_ts is None:
-                created_ts = True
-            data = dict(created_by = application,
-                        created_ts = created_ts,
-                        event_type = event_type,
-                        event_id = event_id,
-                        )
-        Element.__init__(self, data)
-        self.event_type = data.pop('event_type', None)
-        if 'id' in data:  # TODO: Load and save all users in the database to replace id with event_id
-            data['event_id'] = data.pop('id')
-        self.event_id = data.pop('event_id')
+    @classmethod
+    def from_dict(cls, data) -> Element:
+        _known_data = ['created_by', 'created_ts', 'event_id', 'event_type']
+        _leftovers = [x for x in data.keys() if x not in _known_data]
+        if _leftovers:
+            raise EventHasUnknownData('Event has unknown data: {!r}'.format(
+                _leftovers,
+            ))
 
-        ignore_data = ignore_data or []
-        leftovers = [x for x in data.keys() if x not in ignore_data]
-        if leftovers:
-            if raise_on_unknown:
-                raise EventHasUnknownData('Event {!r} unknown data: {!r}'.format(
-                    self.event_id, leftovers,
-                ))
-            # Just keep everything that is left as-is
-            self._data.update(data)
+        return cls(created_by=data.get('created_by'),
+                   created_ts=data.get('created_ts'),
+                   event_id=data['event_id'],
+                   event_type=data['event_type'],
+                   )
 
     # -----------------------------------------------------------------
     @property
@@ -86,42 +80,39 @@ class Event(Element):
 
     # -----------------------------------------------------------------
     @property
-    def event_type(self):
+    def event_type(self) -> str:
         """
         This is the event type.
 
         :return: Event type.
-        :rtype: str
         """
         return self._data['event_type']
 
     @event_type.setter
-    def event_type(self, value):
+    def event_type(self, value: str):
         """
         :param value: event type.
-        :type value: str | unicode
+        :type value: str
         """
         if value is None:
             return
         if not isinstance(value, string_types):
             raise UserDBValueError("Invalid 'event_type': {!r}".format(value))
-        self._data['event_type'] = str(value.lower())
+        self._data['event_type'] = value.lower()
 
     @property
-    def event_id(self):
+    def event_id(self) -> ObjectId:
         """
         This is a unique id for this event.
 
         :return: Unique ID of event.
-        :rtype: bson.ObjectId
         """
         return self._data['event_id']
 
     @event_id.setter
-    def event_id(self, value):
+    def event_id(self, value: ObjectId):
         """
         :param value: Unique ID of event.
-        :type value: bson.ObjectId
         """
         if not isinstance(value, ObjectId):
             raise UserDBValueError("Invalid 'event_id': {!r}".format(value))
@@ -143,6 +134,9 @@ class Event(Element):
         return res
 
 
+EventType = TypeVar('EventType', bound=Event)
+
+
 class EventList(ElementList):
     """
     Hold a list of Event instances.
@@ -159,7 +153,7 @@ class EventList(ElementList):
     :type event_class: object
     """
 
-    def __init__(self, events, raise_on_unknown=True, event_class=Event):
+    def __init__(self, events: Union[Mapping, EventType], event_class: Type[Event]=Event):
         self._event_class = event_class
         elements = []
         ElementList.__init__(self, elements)
@@ -170,14 +164,16 @@ class EventList(ElementList):
         for this in events:
             if isinstance(this, self._event_class):
                 self.add(this)
-            else:
+            elif isinstance(this, dict):
                 if 'event_type' in this:
-                    event = event_from_dict(this, raise_on_unknown=raise_on_unknown)
+                    event = event_from_dict(this)
                 else:
-                    event = self._event_class(data=this)
+                    event = event_class(**this)
                 self.add(event)
+            else:
+                raise UserDBValueError(f'Bad event data: {this!r}')
 
-    def add(self, event):
+    def add(self, event: EventType):
         """
         Add an event to the list.
 
@@ -194,21 +190,18 @@ class EventList(ElementList):
             raise DuplicateElementViolation("Event {!s} already in list".format(event.key))
         super(EventList, self).add(event)
 
-    def to_list_of_dicts(self, mixed_format=False):
+    def to_list_of_dicts(self, mixed_format: bool=False) -> List[dict]:
         """
         Get the elements in a serialized format that can be stored in MongoDB.
 
         :param mixed_format: Tag each Event with the event_type. Used when list has multiple types of events.
 
-        :type mixed_format: bool
-
         :return: List of dicts
-        :rtype: [dict]
         """
         return [this.to_dict(mixed_format=mixed_format) for this in self._elements]
 
 
-def event_from_dict(data, raise_on_unknown=True):
+def event_from_dict(data: dict):
     """
     Create an Event instance (probably really a subclass of Event) from a dict.
 
@@ -216,12 +209,11 @@ def event_from_dict(data, raise_on_unknown=True):
     :param raise_on_unknown: Raise EventHasUnknownData if unrecognized data is encountered
 
     :type data: dict
-    :type raise_on_unknown: bool
     :rtype: Event
     """
     if not 'event_type' in data:
         raise UserDBValueError('No event type specified')
     if data['event_type'] == 'tou_event':
         from eduid_userdb.tou import ToUEvent  # avoid cyclic dependency by importing this here
-        return ToUEvent(data=data, raise_on_unknown=raise_on_unknown)
+        return ToUEvent.from_dict(data)
     raise BadEvent('Unknown event_type in data: {!s}'.format(data['event_type']))

@@ -15,7 +15,7 @@ from eduid_userdb.exceptions import UserMissingData, UserHasUnknownData
 __author__ = 'ft'
 
 _one_dict = \
-    {'id': bson.ObjectId(),
+    {'event_id': bson.ObjectId(),
      'event_type': 'tou_event',
      'version': '1',
      'created_by': 'test',
@@ -23,7 +23,7 @@ _one_dict = \
      }
 
 _two_dict = \
-    {'id': bson.ObjectId(),
+    {'event_id': bson.ObjectId(),
      'event_type': 'tou_event',
      'version': '2',
      'created_by': 'test',
@@ -31,7 +31,7 @@ _two_dict = \
      }
 
 _three_dict = \
-    {'id': bson.ObjectId(),
+    {'event_id': bson.ObjectId(),
      'event_type': 'tou_event',
      'version': '3',
      'created_by': 'test',
@@ -72,18 +72,10 @@ class TestToUEvent(TestCase):
         one = copy.deepcopy(_one_dict)
         one['foo'] = 'bar'
         with self.assertRaises(eduid_userdb.exceptions.EventHasUnknownData):
-            ToUEvent(data=one)
-
-    def test_unknown_input_data_allowed(self):
-        one = copy.deepcopy(_one_dict)
-        one['foo'] = 'bar'
-        addr = ToUEvent(data = one, raise_on_unknown = False)
-        out = addr.to_dict()
-        self.assertIn('foo', out)
-        self.assertEqual(out['foo'], one['foo'])
+            ToUEvent.from_dict(one)
 
     def test_created_by(self):
-        this = Event(application=None, event_id=bson.ObjectId(), event_type='test_event')
+        this = Event(created_by=None, event_id=bson.ObjectId(), event_type='test_event')
         this.created_by = 'unit test'
         self.assertEqual(this.created_by, 'unit test')
         with self.assertRaises(eduid_userdb.exceptions.UserDBValueError):
@@ -94,7 +86,7 @@ class TestToUEvent(TestCase):
         Test that ToUEvent require created_ts, although Event does not.
         """
         with self.assertRaises(eduid_userdb.exceptions.BadEvent):
-            ToUEvent(application='unit test',
+            ToUEvent(created_by='unit test',
                      created_ts=None,
                      version='foo',
                      event_id=bson.ObjectId(),
@@ -105,7 +97,7 @@ class TestToUEvent(TestCase):
         Test bad 'version'.
         """
         with self.assertRaises(eduid_userdb.exceptions.BadEvent):
-            ToUEvent(application='unit test',
+            ToUEvent(created_by='unit test',
                      created_ts=True,
                      version=False,
                      event_id=bson.ObjectId(),
@@ -138,7 +130,7 @@ class TestTouUser(TestCase):
 
     def test_proper_user(self):
         one = copy.deepcopy(_one_dict)
-        tou = ToUEvent(data = one, raise_on_unknown = False)
+        tou = ToUEvent.from_dict(one)
         userdata = copy.deepcopy(NEW_USER_EXAMPLE)
         userdata['tou'] = [tou]
         user = ToUUser(data=userdata)
@@ -146,34 +138,16 @@ class TestTouUser(TestCase):
 
     def test_missing_eppn(self):
         one = copy.deepcopy(_one_dict)
-        tou = ToUEvent(data = one, raise_on_unknown = False)
+        tou = ToUEvent.from_dict(one)
         with self.assertRaises(UserMissingData):
             user = ToUUser(tou=[tou], userid=USERID)
 
     def test_missing_userid(self):
         one = copy.deepcopy(_one_dict)
-        tou = ToUEvent(data = one, raise_on_unknown = False)
+        tou = ToUEvent.from_dict(one)
         with self.assertRaises(UserMissingData):
             user = ToUUser(tou=[tou], eppn=EPPN)
 
     def test_missing_tou(self):
         with self.assertRaises(UserMissingData):
             user = ToUUser(eppn=EPPN, userid=USERID)
-
-    def test_unknown_data(self):
-        one = copy.deepcopy(_one_dict)
-        tou = ToUEvent(data = one, raise_on_unknown = False)
-        userdata = copy.deepcopy(NEW_USER_EXAMPLE)
-        userdata['tou'] = [tou]
-        userdata['foo'] = 'bar'
-        with self.assertRaises(UserHasUnknownData):
-            user = ToUUser(data=userdata)
-
-    def test_unknown_data_dont_raise(self):
-        one = copy.deepcopy(_one_dict)
-        tou = ToUEvent(data = one, raise_on_unknown = False)
-        userdata = copy.deepcopy(NEW_USER_EXAMPLE)
-        userdata['tou'] = [tou]
-        userdata['foo'] = 'bar'
-        user = ToUUser(data=userdata, raise_on_unknown=False)
-        self.assertEquals(user.to_dict()['foo'], 'bar')

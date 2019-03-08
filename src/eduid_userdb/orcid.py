@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import
+from __future__ import annotations
 
 import copy
 from six import string_types
@@ -16,40 +16,43 @@ class OidcIdToken(Element):
     """
 
     def __init__(self, iss=None, sub=None, aud=None, exp=None, iat=None, nonce=None, auth_time=None, acr=None, amr=None,
-                 azp=None, application=None, created_ts=None, data=None, raise_on_unknown=True):
-        data_in = data
-        data = copy.deepcopy(data_in)  # to not modify callers data
+                 azp=None, created_by=None, created_ts=None):
+        # TODO: created_ts=None means "don't set" in Element. Maybe not special-case created_ts in this class.
+        if created_ts is None:
+            created_ts = True
+        super().__init__(created_by=created_by, created_ts=created_ts)
+        self.iss = iss
+        self.sub = sub
+        self.aud = aud
+        self.exp = exp
+        self.iat = iat
+        self.nonce = nonce
+        self.auth_time = auth_time
+        self.acr = acr
+        self.amr = amr
+        self.azp = azp
 
-        if data is None:
-            if created_ts is None:
-                created_ts = True
-            data = dict(iss=iss,
-                        sub=sub,
-                        aud=aud,
-                        exp=exp,
-                        iat=iat,
-                        nonce=nonce,
-                        auth_time=auth_time,
-                        acr=acr,
-                        amr=amr,
-                        azp=azp,
-                        created_by=application,
-                        created_ts=created_ts,
-                        )
-        Element.__init__(self, data)
-        self.iss = data.pop('iss')
-        self.sub = data.pop('sub')
-        self.aud = data.pop('aud')
-        self.exp = data.pop('exp')
-        self.iat = data.pop('iat')
-        self.nonce = data.pop('nonce', None)
-        self.auth_time = data.pop('auth_time', None)
-        self.acr = data.pop('acr', None)
-        self.amr = data.pop('amr', None)
-        self.azp = data.pop('azp', None)
+    @classmethod
+    def from_dict(cls, data: dict) -> OidcIdToken:
+        _known_data = ['created_by', 'created_ts',
+                       'iss', 'sub', 'aud', 'exp', 'iat', 'nonce', 'auth_time', 'acr', 'amr', 'azp']
+        _leftovers = [x for x in data.keys() if x not in _known_data]
+        if _leftovers:
+            raise UserHasUnknownData(f'OidcIdToken has unknown data: {_leftovers}')
 
-        if raise_on_unknown and data:
-            raise UserHasUnknownData('{!s} has unknown data: {!r}'.format(self.__class__.__name__, data.keys()))
+        return cls(created_by=data.get('created_by'),
+                   created_ts=data.get('created_ts'),
+                   iss=data['iss'],
+                   sub=data['sub'],
+                   aud=data['aud'],
+                   exp=data['exp'],
+                   iat=data['iat'],
+                   nonce=data.get('nonce'),
+                   auth_time=data.get('auth_time'),
+                   acr=data.get('acr'),
+                   amr=data.get('amr'),
+                   azp=data.get('azp'),
+                   )
 
     @property
     def key(self):
@@ -280,37 +283,37 @@ class OidcAuthorization(Element):
     OpenID Connect Authorization data
     """
     def __init__(self, access_token=None, token_type=None, id_token=None, expires_in=None, refresh_token=None,
-                 application=None, created_ts=None, data=None, raise_on_unknown=True):
-        data_in = data
-        data = copy.deepcopy(data_in)  # to not modify callers data
-
-        if data is None:
-            if created_ts is None:
-                created_ts = True
-            data = dict(access_token=access_token,
-                        token_type=token_type,
-                        id_token=id_token,
-                        expires_in=expires_in,
-                        refresh_token=refresh_token,
-                        created_by=application,
-                        created_ts=created_ts,
-                        )
-
-        Element.__init__(self, data)
-        self.access_token = data.pop('access_token')
-        self.token_type = data.pop('token_type')
-        self.expires_in = data.pop('expires_in')
-        self.refresh_token = data.pop('refresh_token')
-
+                 created_by=None, created_ts=None):
+        # TODO: created_ts=None means "don't set" in Element. Maybe not special-case created_ts in this class.
+        if created_ts is None:
+            created_ts = True
+        super().__init__(created_by=created_by, created_ts=created_ts)
+        self.access_token = access_token
+        self.token_type = token_type
+        self.expires_in = expires_in
+        self.refresh_token = refresh_token
         # Parse ID token
-        _id_token = data.pop('id_token')
-        if isinstance(_id_token, dict):
-            self.id_token = OidcIdToken(data=_id_token, raise_on_unknown=raise_on_unknown)
-        if isinstance(_id_token, OidcIdToken):
-            self.id_token = _id_token
+        if isinstance(id_token, dict):
+            self.id_token = OidcIdToken.from_dict(id_token)
+        if isinstance(id_token, OidcIdToken):
+            self.id_token = id_token
 
-        if raise_on_unknown and data:
-            raise UserHasUnknownData('{!s} has unknown data: {!r}'.format(self.__class__.__name__, data.keys()))
+    @classmethod
+    def from_dict(cls, data: dict) -> OidcAuthorization:
+        _known_data = ['created_by', 'created_ts',
+                       'access_token', 'token_type', 'id_token', 'expires_in', 'refresh_token']
+        _leftovers = [x for x in data.keys() if x not in _known_data]
+        if _leftovers:
+            raise UserHasUnknownData(f'OidcAuthorization has unknown data: {_leftovers}')
+
+        return cls(created_by=data.get('created_by'),
+                   created_ts=data.get('created_ts'),
+                   access_token=data['access_token'],
+                   token_type=data['token_type'],
+                   id_token=data['id_token'],
+                   expires_in=data['expires_in'],
+                   refresh_token=data['refresh_token'],
+                   )
 
     @property
     def key(self):
@@ -450,39 +453,42 @@ class Orcid(VerifiedElement):
     :type data: dict
     :type raise_on_unknown: bool
     """
-    def __init__(self, id=None, name=None, given_name=None, family_name=None, oidc_authz=None, application=None,
-                 verified=False, created_ts=None, data=None, raise_on_unknown=True):
-        data_in = data
-        data = copy.deepcopy(data_in)  # to not modify callers data
-
-        if data is None:
-            if created_ts is None:
-                created_ts = True
-            data = dict(id=id,
-                        name=name,
-                        given_name=given_name,
-                        family_name=family_name,
-                        oidc_authz=oidc_authz,
-                        created_by=application,
-                        created_ts=created_ts,
-                        verified=verified,
-                        )
-
-        VerifiedElement.__init__(self, data)
-        self.id = data.pop('id')
-        self.name = data.pop('name', None)
-        self.given_name = data.pop('given_name', None)
-        self.family_name = data.pop('family_name', None)
+    def __init__(self, id=None, name=None, given_name=None, family_name=None, oidc_authz=None,
+                 created_by=None, verified=False, created_ts=None):
+        # TODO: created_ts=None means "don't set" in Element. Maybe not special-case created_ts in this class.
+        if created_ts is None:
+            created_ts = True
+        super().__init__(created_by=created_by, created_ts=created_ts, verified=verified)
+        self.id = id
+        self.name = name
+        self.given_name = given_name
+        self.family_name = family_name
 
         # Parse ID token
-        _oidc_authz = data.pop('oidc_authz')
-        if isinstance(_oidc_authz, dict):
-            self.oidc_authz = OidcAuthorization(data=_oidc_authz)
-        if isinstance(_oidc_authz, OidcAuthorization):
-            self.oidc_authz = _oidc_authz
+        if isinstance(oidc_authz, dict):
+            self.oidc_authz = OidcAuthorization.from_dict(oidc_authz)
+        elif isinstance(oidc_authz, OidcAuthorization):
+            self.oidc_authz = oidc_authz
+        else:
+            raise UserDBValueError(f'Unknown oidc_authz in Orcid: {oidc_authz!r}')
 
-        if raise_on_unknown and data:
-            raise UserHasUnknownData('{!s} has unknown data: {!r}'.format(self.__class__.__name__, data.keys()))
+    @classmethod
+    def from_dict(cls, data: dict) -> Orcid:
+        _known_data = ['created_by', 'created_ts', 'verified',
+                       'id', 'name', 'given_name', 'family_name', 'oidc_authz']
+        _leftovers = [x for x in data.keys() if x not in _known_data]
+        if _leftovers:
+            raise UserHasUnknownData(f'Orcid has unknown data: {_leftovers}')
+
+        return cls(created_by=data.get('created_by'),
+                   created_ts=data.get('created_ts'),
+                   verified=data.get('verified'),
+                   id=data['id'],
+                   name=data['name'],
+                   given_name=data['given_name'],
+                   family_name=data['family_name'],
+                   oidc_authz=data['oidc_authz'],
+                   )
 
     # -----------------------------------------------------------------
     @property

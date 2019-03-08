@@ -77,18 +77,18 @@ class TestNinList(TestCase):
         self.assertEqual(this.to_list_of_dicts(), self.three.to_list_of_dicts())
 
     def test_add_another_primary(self):
-        new = eduid_userdb.nin.nin_from_dict({'number': '+46700000009',
-                                              'verified': True,
-                                              'primary': True,
-                                              })
+        new = Nin.from_dict({'number': '+46700000009',
+                             'verified': True,
+                             'primary': True,
+                             })
         with self.assertRaises(eduid_userdb.element.PrimaryElementViolation):
             self.one.add(new)
 
     def test_add_wrong_type(self):
-        pwdict = {'id': bson.ObjectId(),
+        pwdict = {'credential_id': bson.ObjectId(),
                   'salt': 'foo',
                   }
-        new = Password(data=pwdict)
+        new = Password.from_dict(pwdict)
         with self.assertRaises(eduid_userdb.element.UserDBValueError):
             self.one.add(new)
 
@@ -149,7 +149,7 @@ class TestNinList(TestCase):
         one = copy.deepcopy(_one_dict)
         one['verified'] = False
         with self.assertRaises(eduid_userdb.element.PrimaryElementViolation):
-            this = NinList([one])
+            NinList([one])
 
 
 class TestNin(TestCase):
@@ -189,15 +189,7 @@ class TestNin(TestCase):
         one = copy.deepcopy(_one_dict)
         one['foo'] = 'bar'
         with self.assertRaises(eduid_userdb.exceptions.UserHasUnknownData):
-            Nin(data = one)
-
-    def test_unknown_input_data_allowed(self):
-        one = copy.deepcopy(_one_dict)
-        one['foo'] = 'bar'
-        addr = Nin(data = one, raise_on_unknown = False)
-        out = addr.to_dict()
-        self.assertIn('foo', out)
-        self.assertEqual(out['foo'], one['foo'])
+            Nin.from_dict(one)
 
     def test_changing_is_verified_on_primary(self):
         this = self.one.primary

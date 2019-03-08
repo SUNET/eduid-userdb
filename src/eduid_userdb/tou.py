@@ -33,34 +33,44 @@
 # Author : Fredrik Thulin <fredrik@thulin.net>
 #
 
-import copy
 from six import string_types
 
 from eduid_userdb.event import Event, EventList
-from eduid_userdb.exceptions import BadEvent
+from eduid_userdb.exceptions import BadEvent, EventHasUnknownData
 
 
 class ToUEvent(Event):
     """
     A record of a user's acceptance of a particular version of the Terms of Use.
     """
-    def __init__(self, version=None, application=None, created_ts=None, event_id=None,
-                 data=None, raise_on_unknown=True):
-        data_in = data
-        data = copy.copy(data_in)  # to not modify callers data
+    def __init__(self, version, created_by=None, created_ts=None, event_id=None):
+        if created_ts is None:
+            raise BadEvent('ToUEvent requires created_ts')
+        super().__init__(created_by=created_by,
+                         created_ts=created_ts,
+                         event_type='tou_event',
+                         event_id=event_id,
+                         )
+        self.version = version
 
-        if data is None:
-            data = dict(version = version,
-                        created_by = application,
-                        created_ts = created_ts,
-                        event_type = 'tou_event',
-                        event_id = event_id,
-                        )
-        for required in ['created_by', 'created_ts']:
-            if required not in data or not data.get(required):
-                raise BadEvent('missing required data for event: {!s}'.format(required))
-        Event.__init__(self, data=data, raise_on_unknown=raise_on_unknown, ignore_data = ['version'])
-        self.version = data.pop('version')
+    @classmethod
+    def from_dict(cls, data):
+        _known_data = ['created_by', 'created_ts', 'event_id', 'version', 'event_type']
+        _leftovers = [x for x in data.keys() if x not in _known_data]
+        if _leftovers:
+            raise EventHasUnknownData('ToUEvent has unknown data: {!r}'.format(
+                _leftovers,
+            ))
+
+        if data['event_type'] != 'tou_event':
+            raise BadEvent('Event of type ToU got event_type {!r}'.format(data['event_type']))
+
+        return cls(created_by=data.get('created_by'),
+                   created_ts=data.get('created_ts'),
+                   event_id=data['event_id'],
+                   version=data['version'],
+                   )
+
 
     # -----------------------------------------------------------------
     @property
@@ -90,18 +100,16 @@ class ToUList(EventList):
     """
     List of ToUEvents.
     """
-    def __init__(self, events, raise_on_unknown=True, event_class=ToUEvent):
-        EventList.__init__(self, events, raise_on_unknown=raise_on_unknown, event_class=event_class)
+    def __init__(self, events, event_class=ToUEvent):
+        EventList.__init__(self, events, event_class=event_class)
 
-    def has_accepted(self, version):
+    def has_accepted(self, version: str) -> bool:
         """
         Check if the user has accepted a particular version of the ToU.
 
         :param version: Version of ToU
-        :type version: string_types
 
         :return: True or False
-        :rtype: bool
         """
         # All users have implicitly accepted the first ToU version (info stored in another collection)
         if version in ['2014-v1', '2014-dev-v1']:

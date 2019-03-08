@@ -13,18 +13,18 @@ __author__ = 'lundberg'
 
 
 _one_dict = {
-    'id': ObjectId('55002741d00690878ae9b600'),
+    'credential_id': ObjectId('55002741d00690878ae9b600'),
     'salt': 'firstPasswordElement',
 }
 _two_dict = {
-    'id': ObjectId('55002741d00690878ae9b601'),
+    'credential_id': ObjectId('55002741d00690878ae9b601'),
     'salt': 'secondPasswordElement',
-    'source': 'test'
+    'created_by': 'test'
 }
 _three_dict = {
-    'id': ObjectId('55002741d00690878ae9b602'),
+    'credential_id': ObjectId('55002741d00690878ae9b602'),
     'salt': 'thirdPasswordElement',
-    'source': 'test'
+    'created_by': 'test'
 }
 
 
@@ -66,15 +66,7 @@ class TestPassword(TestCase):
         one = copy.deepcopy(_one_dict)
         one['foo'] = 'bar'
         with self.assertRaises(eduid_userdb.exceptions.UserHasUnknownData):
-            Password(data=one)
-
-    def test_unknown_input_data_allowed(self):
-        one = copy.deepcopy(_one_dict)
-        one['foo'] = 'bar'
-        addr = Password(data=one, raise_on_unknown=False)
-        out = addr.to_dict()
-        self.assertIn('foo', out)
-        self.assertEqual(out['foo'], one['foo'])
+            Password.from_dict(one)
 
     def test_created_by(self):
         this = self.three.find(ObjectId('55002741d00690878ae9b600'))
@@ -116,13 +108,13 @@ class TestChpassUser(TestCase):
 
     def test_proper_user(self):
         one = copy.deepcopy(_one_dict)
-        password = Password(data = one, raise_on_unknown = False)
+        password = Password.from_dict(one)
         user = ChpassUser(userid=USERID, passwords=[password])
         self.assertEquals(user.passwords.to_list_of_dicts()[0]['salt'], 'firstPasswordElement')
 
     def test_missing_userid(self):
         one = copy.deepcopy(_one_dict)
-        password = Password(data = one, raise_on_unknown = False)
+        password = Password.from_dict(one)
         with self.assertRaises(UserMissingData):
             user = ChpassUser(passwords=[password])
 
@@ -132,14 +124,14 @@ class TestChpassUser(TestCase):
 
     def test_unknown_data(self):
         one = copy.deepcopy(_one_dict)
-        password = Password(data = one, raise_on_unknown = False)
+        password = Password.from_dict(one)
         data = dict(_id=USERID, passwords=[password], foo='bar')
         with self.assertRaises(UserHasUnknownData):
             user = ChpassUser(data=data)
 
     def test_unknown_data_dont_raise(self):
         one = copy.deepcopy(_one_dict)
-        password = Password(data = one, raise_on_unknown = False)
+        password = Password.from_dict(one)
         data = dict(_id=USERID, passwords=[password], foo='bar')
         user = ChpassUser(data=data, raise_on_unknown=False)
         self.assertEquals(user.to_dict()['foo'], 'bar')

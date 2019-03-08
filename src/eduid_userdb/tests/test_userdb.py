@@ -31,10 +31,11 @@
 #
 
 import bson
-from eduid_userdb.testing import MongoTestCase
+
 import eduid_userdb
 from eduid_userdb import User
-from datetime import datetime
+from eduid_userdb.nin import Nin
+from eduid_userdb.testing import MongoTestCase
 
 
 class TestUserDB(MongoTestCase):
@@ -270,27 +271,6 @@ class TestUserDB_nin(MongoTestCase):
 
         res = self.amdb.get_user_by_nin(u'33333333333', include_unconfirmed = True)
         self.assertEqual(self.user2.user_id, res.user_id)
-
-    def test_get_user_by_nin_old_format(self):
-        """ Test compatibility code locating old style users """
-        # Re-save the test users in old userdb format
-        user1 = self.amdb.get_user_by_id(self.user1.user_id)
-        user2 = self.amdb.get_user_by_id(self.user2.user_id)
-        self.amdb.save(user1, old_format = True)
-        self.amdb.save(user2, old_format = True)
-
-        test_user = self.amdb.get_user_by_id(self.user1.user_id)
-        res = self.amdb.get_user_by_nin(test_user.nins.primary.number)
-        self.assertEqual(test_user.user_id, res.user_id)
-
-        res = self.amdb.get_user_by_nin('22222222222')
-        self.assertEqual(self.user2.user_id, res.user_id)
-
-        self.assertIsNone(self.amdb.get_user_by_nin(u'33333333333', raise_on_missing = False))
-
-        with self.assertRaises(eduid_userdb.exceptions.UserDoesNotExist):
-            # in old userdb format, unconfirmed nins are not saved on the user
-            self.amdb.get_user_by_nin(u'33333333333', include_unconfirmed = True)
 
     def test_get_user_by_nin_unknown(self):
         """ Test searching for unknown e-nin address """

@@ -1,5 +1,6 @@
 #
 # Copyright (c) 2015 NORDUnet A/S
+# Copyright (c) 2018 SUNET
 # All rights reserved.
 #
 #   Redistribution and use in source and binary forms, with or
@@ -34,37 +35,43 @@
 
 import copy
 from six import string_types
+from typing import List, Union
+
 from eduid_userdb.element import PrimaryElement, PrimaryElementList
-from eduid_userdb.exceptions import UserDBValueError
+from eduid_userdb.exceptions import UserDBValueError, UserHasUnknownData
 
 __author__ = 'ft'
 
 
 class Nin(PrimaryElement):
-    """
-    :param data: Phone number parameters from database
-    :param raise_on_unknown: Raise exception on unknown values in `data' or not.
+    """ National identity number """
 
-    :type data: dict
-    :type raise_on_unknown: bool
-    """
-    def __init__(self, number = None, application=None, verified=False, created_ts=None, primary=None,
-                 data=None, raise_on_unknown = True):
-        data_in = data
-        data = copy.copy(data_in)  # to not modify callers data
+    def __init__(self, number=None, created_by=None, created_ts=None,
+                 verified=False,
+                 primary=False):
+        super().__init__(created_by=created_by, created_ts=created_ts,
+                         verified=verified,
+                         verified_by=None,
+                         verified_ts=None,
+                         primary=primary,
+                         )
+        self.number = number
 
-        if data is None:
-            if created_ts is None:
-                created_ts = True
-            data = dict(number = number,
-                        created_by = application,
-                        created_ts = created_ts,
-                        verified = verified,
-                        primary = primary,
-                        )
+    @classmethod
+    def from_dict(cls, data):
+        _known_data = ['number', 'created_by', 'created_ts', 'verified', 'primary']
+        _leftovers = [x for x in data.keys() if x not in _known_data]
+        if _leftovers:
+            raise UserHasUnknownData('Nin has unknown data: {!r}'.format(
+                _leftovers,
+            ))
 
-        PrimaryElement.__init__(self, data, raise_on_unknown, ignore_data = ['number'])
-        self.number = data.pop('number')
+        return cls(number=data['number'],
+                   created_by=data.get('created_by'),
+                   created_ts=data.get('created_ts'),
+                   verified=data['verified'],
+                   primary=data.get('primary', False),
+                   )
 
     # -----------------------------------------------------------------
     @property
@@ -119,16 +126,17 @@ class NinList(PrimaryElementList):
     one primary nin number in the list (except if the list is empty).
 
     :param nins: List of nin number records
-    :type nins: [dict | Nin]
     """
-    def __init__(self, nins, raise_on_unknown = True):
+    def __init__(self, nins: List[Union[dict, Nin]]):
         elements = []
 
         for this in nins:
             if isinstance(this, Nin):
                 nin = this
+            elif isinstance(this, dict):
+                nin = Nin.from_dict(this)
             else:
-                nin = nin_from_dict(this, raise_on_unknown)
+                raise UserDBValueError(f'Bad NinList element {this!r}')
             elements.append(nin)
 
         PrimaryElementList.__init__(self, elements)
@@ -158,17 +166,3 @@ class NinList(PrimaryElementList):
         :type  nin: str | unicode
         """
         PrimaryElementList.primary.fset(self, nin)
-
-
-def nin_from_dict(data, raise_on_unknown = True):
-    """
-    Create a Nin instance from a dict.
-
-    :param data: Phone number parameters from database
-    :param raise_on_unknown: Raise exception on unknown values in `data' or not.
-
-    :type data: dict
-    :type raise_on_unknown: bool
-    :rtype: Nin
-    """
-    return Nin(data=data, raise_on_unknown=raise_on_unknown)

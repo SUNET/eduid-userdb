@@ -1,5 +1,6 @@
 #
 # Copyright (c) 2015 NORDUnet A/S
+# Copyright (c) 2018 SUNET
 # All rights reserved.
 #
 #   Redistribution and use in source and binary forms, with or
@@ -31,13 +32,20 @@
 #
 # Author : Fredrik Thulin <fredrik@thulin.net>
 #
-
-__author__ = 'ft'
+from __future__ import annotations
 
 import copy
 import datetime
+
+from abc import ABC, ABCMeta, abstractmethod
 from six import string_types
-from eduid_userdb.exceptions import EduIDUserDBError, UserHasUnknownData, UserDBValueError
+from typing import Optional, Sequence, TypeVar, Union, Dict, Any, List
+from typing_extensions import Literal
+
+from eduid_userdb.exceptions import EduIDUserDBError, UserDBValueError
+
+
+__author__ = 'ft'
 
 
 class ElementError(EduIDUserDBError):
@@ -69,7 +77,18 @@ class PrimaryElementViolation(PrimaryElementError):
     pass
 
 
-class Element(object):
+# A type for an Element or any of it's subclasses
+ElementType = TypeVar('ElementType', bound='Element')
+
+# A type for an PrimaryElement or any of it's subclasses
+PrimaryElementType = TypeVar('PrimaryElementType', bound='PrimaryElement')
+
+
+# Type for a datetime, or True for now
+DateTimeDefault = Union[datetime.datetime, Literal[True], None]
+
+
+class Element(ABC):
     """
     Base class for elements.
 
@@ -85,25 +104,24 @@ class Element(object):
         created_by
         created_ts
     """
-    def __init__(self, data):
-        if not isinstance(data, dict):
-            raise UserDBValueError("Invalid 'data', not dict ({!r})".format(type(data)))
-        self._data = {}
+    def __init__(self, created_by: Optional[str], created_ts: DateTimeDefault):
+        self._data: Dict[str, Any] = {}
 
-        self.created_by = data.pop('created_by', None)
-        self.created_ts = data.pop('created_ts', None)
+        self.created_by = created_by
+        self.created_ts = created_ts
 
     def __repr__(self):
         return '<eduID {!s}: {!r}>'.format(self.__class__.__name__, getattr(self, '_data', None))
 
     # -----------------------------------------------------------------
     @property
+    @abstractmethod
     def key(self):
         """
         Return the element that is used as key in a PrimaryElementList.
         Must be implemented in subclasses of PrimaryElement.
         """
-        raise NotImplementedError("'key' not implemented for Element subclass")
+        pass
 
     # -----------------------------------------------------------------
     @property
@@ -141,7 +159,7 @@ class Element(object):
         _set_something_ts(self._data, 'created_ts', value)
 
     # -----------------------------------------------------------------
-    def to_dict(self, old_userdb_format = False):
+    def to_dict(self):
         """
         Convert Element to a dict, that can be used to reconstruct the
         Element later.
@@ -152,8 +170,22 @@ class Element(object):
         res = copy.copy(self._data)  # avoid caller messing with our _data
         return res
 
+    @classmethod
+    @abstractmethod
+    def from_dict(cls, data) -> Element:
+        """ Create instance of this class from a data dictionary. """
+        raise NotImplementedError('Subclass of Element must implement from_dict')
 
-class VerifiedElement(Element):
+    @classmethod
+    def _default_from_dict(cls, data, fields):
+        _leftovers = [x for x in data.keys() if x not in fields]
+        if _leftovers:
+            raise UserDBValueError(f'{type(cls)}.from_dict() unknown data: {_leftovers}')
+
+        return cls(**data)
+
+
+class VerifiedElement(Element, metaclass=ABCMeta):
     """
     Elements that can be verified or not.
 
@@ -164,13 +196,13 @@ class VerifiedElement(Element):
         verified_ts
     """
 
-    def __init__(self, data):
-        Element.__init__(self, data)
-        # Remove deprecated verification_code from VerifiedElement
-        data.pop('verification_code', None)
-        self.is_verified = data.pop('verified', False)
-        self.verified_by = data.pop('verified_by', None)
-        self.verified_ts = data.pop('verified_ts', None)
+    def __init__(self, created_by: Optional[str] = None, created_ts: DateTimeDefault = None,
+                 verified: bool = False,
+                 verified_by: Optional[str] = None, verified_ts: DateTimeDefault = None):
+        super().__init__(created_by=created_by, created_ts=created_ts)
+        self.is_verified = verified
+        self.verified_by = verified_by
+        self.verified_ts = verified_ts
 
     # -----------------------------------------------------------------
     @property
@@ -241,21 +273,15 @@ class PrimaryElement(VerifiedElement):
     :type data: dict
     :type raise_on_unknown: bool
     """
-    def __init__(self, data, raise_on_unknown = True, ignore_data = None):
-        VerifiedElement.__init__(self, data)
+    def __init__(self, created_by: Optional[str] = None, created_ts: DateTimeDefault = None,
+                 verified: bool = False,
+                 verified_by: Optional[str] = None, verified_ts: DateTimeDefault = None,
+                 primary: bool = False):
+        super().__init__(created_by=created_by, created_ts=created_ts,
+                         verified=verified,
+                         verified_by=verified_by, verified_ts=verified_ts)
 
-        self.is_primary = data.pop('primary', False)
-
-        ignore_data = ignore_data or []
-        leftovers = [x for x in data.keys() if x not in ignore_data]
-        if leftovers:
-            if raise_on_unknown:
-                raise UserHasUnknownData('{!s} has unknown data: {!r}'.format(
-                    self.__class__.__name__,
-                    leftovers,
-                ))
-            # Just keep everything that is left as-is
-            self._data.update(data)
+        self.is_primary = primary
 
     # -----------------------------------------------------------------
     @property
@@ -312,7 +338,7 @@ class ElementList(object):
     def __init__(self, elements):
         for this in elements:
             if not isinstance(this, Element):
-                raise ValueError("Not an Element")
+                raise ValueError('Element in list is {}, not Element'.format(type(this)))
         self._elements = elements
 
     def __repr__(self):
@@ -326,19 +352,19 @@ class ElementList(object):
         """
         return self._elements
 
-    def to_list_of_dicts(self, old_userdb_format=False):
+    def to_list_of_dicts(self, old_userdb_format=None) -> List[dict]:
         """
         Get the elements in a serialized format that can be stored in MongoDB.
 
-        :param old_userdb_format: Set to True to get data back in legacy format.
-        :type old_userdb_format: bool
-
         :return: List of dicts
-        :rtype: [dict]
         """
-        return [this.to_dict(old_userdb_format=old_userdb_format) for this in self._elements]
+        if old_userdb_format is not None:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.debug('old_userdb_format passed to ElementList.to_list_of_dict')
+        return [this.to_dict() for this in self._elements]
 
-    def find(self, key):
+    def find(self, key) -> ElementType:
         """
         Find an Element from the element list, using the key.
 
@@ -412,9 +438,9 @@ class PrimaryElementList(ElementList):
     """
     def __init__(self, elements):
         self._get_primary(elements)
-        ElementList.__init__(self, elements)
+        super().__init__(elements)
 
-    def add(self, element):
+    def add(self, element: PrimaryElementType) -> PrimaryElementList:
         """
         Add a element to the list.
 
@@ -423,10 +449,7 @@ class PrimaryElementList(ElementList):
 
         Raises DuplicateElementViolation if the element already exist in
         the list.
-
-        :param element: PrimaryElement to add
-        :type element: PrimaryElement
-        :return: PrimaryElementList
+        :return: Updated PrimaryElementList
         """
         if not isinstance(element, PrimaryElement):
             raise UserDBValueError("Invalid element: {!r}".format(element))
@@ -435,7 +458,7 @@ class PrimaryElementList(ElementList):
             raise DuplicateElementViolation("Element {!s} already in list".format(element.key))
 
         old_list = self._elements
-        ElementList.add(self, element)
+        super().add(element)
         self._check_primary(old_list)
         return self
 
@@ -451,7 +474,7 @@ class PrimaryElementList(ElementList):
         :return: ElementList
         """
         old_list = self._elements
-        ElementList.remove(self, key)
+        super().remove(key)
         self._check_primary(old_list)
         return self
 
@@ -492,6 +515,12 @@ class PrimaryElementList(ElementList):
         for this in self._elements:
             this.is_primary = bool(this.key == key)
 
+    def find(self, key) -> Union[PrimaryElement, False]:
+        res = super().find(key)
+        if res is False or isinstance(res, PrimaryElement):
+            return res
+        raise RuntimeError('Find returned unknown element: {}'.format(res))
+
     def _check_primary(self, old_list):
         """
         If there are confirmed elements, there must be exactly one primary
@@ -507,7 +536,7 @@ class PrimaryElementList(ElementList):
             self._elements = copy.copy(old_list)
             raise
 
-    def _get_primary(self, elements):
+    def _get_primary(self, elements: Sequence[PrimaryElement]) -> Optional[PrimaryElement]:
         """
         Find the primary element in a list, and ensure there is exactly one (unless
         there are no confirmed elements, in which case, ensure there are exactly zero).
@@ -542,7 +571,7 @@ class PrimaryElementList(ElementList):
         return self.__class__(verified_elements)
 
 
-def _set_something_by(data, key, value, allow_update=False):
+def _set_something_by(data: dict, key: str, value: Optional[str], allow_update: bool=False):
     """
     Shared code to set or update 'verified_by', 'created_by' and similar properties.
 
@@ -562,7 +591,7 @@ def _set_something_by(data, key, value, allow_update=False):
     data[key] = str(value)
 
 
-def _set_something_ts(data, key, value, allow_update=False):
+def _set_something_ts(data: dict, key: str, value: DateTimeDefault, allow_update: bool=False):
     """
     Shared code to set or update 'verified_ts', 'created_ts' and similar properties.
 

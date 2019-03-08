@@ -37,6 +37,8 @@ from __future__ import absolute_import
 
 from six import string_types
 
+from typing import Optional
+
 from eduid_userdb.element import VerifiedElement
 from eduid_userdb.exceptions import UserDBValueError
 
@@ -52,11 +54,16 @@ class Credential(VerifiedElement):
     only for credentials until we know we want it for other types of verifed
     elements too.
     """
-    def __init__(self, data):
-        super(Credential, self).__init__(data)
-
-        self.proofing_method = data.pop('proofing_method', None)
-        self.proofing_version = data.pop('proofing_version', None)
+    def __init__(self, created_by, created_ts,
+                 verified,
+                 verified_by, verified_ts,
+                 proofing_method: Optional[str],
+                 proofing_version: Optional[str]):
+        super().__init__(created_by=created_by, created_ts=created_ts,
+                         verified=verified,
+                         verified_by=verified_by, verified_ts=verified_ts)
+        self.proofing_method = proofing_method
+        self.proofing_version = proofing_version
 
     # -----------------------------------------------------------------
     @property
@@ -96,8 +103,8 @@ class Credential(VerifiedElement):
             raise UserDBValueError("Invalid 'proofing_version': {!r}".format(value))
         self._data['proofing_version'] = value
 
-    def to_dict(self, old_userdb_format=False):
-        res = super(Credential, self).to_dict(old_userdb_format=old_userdb_format)
+    def to_dict(self):
+        res = super().to_dict()
         if res.get('verified') is True:
             # suppress method/version None to avoid messing up test cases unnecessarily
             if 'proofing_method' in res and res['proofing_method'] is None:

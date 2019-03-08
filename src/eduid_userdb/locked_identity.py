@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 from six import string_types
+from typing import List, Union, TypeVar
 
 from eduid_userdb.element import Element, ElementList
-from eduid_userdb.exceptions import UserDBValueError, EduIDUserDBError
+from eduid_userdb.exceptions import UserDBValueError, EduIDUserDBError, UserHasUnknownData
 
 
 __author__ = 'lundberg'
@@ -19,9 +21,9 @@ class LockedIdentityElement(Element):
         identity_type
     """
 
-    def __init__(self, data):
-        Element.__init__(self, data)
-        self.identity_type = data.pop('identity_type')
+    def __init__(self, created_by=None, created_ts=None, identity_type=None):
+        super().__init__(created_by=created_by, created_ts=created_ts)
+        self.identity_type = identity_type
 
     # -----------------------------------------------------------------
     @property
@@ -63,13 +65,20 @@ class LockedIdentityNin(LockedIdentityElement):
     """
 
     def __init__(self, number, created_by, created_ts):
-        data = {
-            'created_by': created_by,
-            'created_ts': created_ts,
-            'identity_type': 'nin'
-        }
-        LockedIdentityElement.__init__(self, data)
+        super().__init__(created_by=created_by, created_ts=created_ts, identity_type='nin')
         self.number = number
+
+    @classmethod
+    def from_dict(cls, data) -> LockedIdentityNin:
+        _known_data = ['number', 'created_by', 'created_ts']
+        _leftovers = [x for x in data.keys() if x not in _known_data]
+        if _leftovers:
+            raise UserHasUnknownData(f'LockedIdentityNin has unknown data: {_leftovers}')
+
+        return cls(number=data['number'],
+                   created_by=data.get('created_by'),
+                   created_ts=data.get('created_ts'),
+                   )
 
     # -----------------------------------------------------------------
     @property
@@ -91,16 +100,17 @@ class LockedIdentityNin(LockedIdentityElement):
         self._data['number'] = value
 
 
+# A type for an LockedIdentitytElementType or any of it's subclasses
+LockedIdentityElementType = TypeVar('LockedIdentityElementType', bound='LockedIdentitytElement')
+
+
 class LockedIdentityList(ElementList):
     """
     Hold a list of LockedIdentityElement instances.
 
     Provide methods to find and add to the list.
-
-    :param locked_identities: List of LockedIdentityElements
-    :type locked_identities: [dict | Element]
     """
-    def __init__(self, locked_identities):
+    def __init__(self, locked_identities: List[Union[dict, LockedIdentityElementType]]):
         elements = []
         for item in locked_identities:
             if isinstance(item, LockedIdentityList):

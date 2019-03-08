@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (c) 2015 NORDUnet A/S
+# Copyright (c) 2018 SUNET
 # All rights reserved.
 #
 #   Redistribution and use in source and binary forms, with or
@@ -32,9 +33,7 @@
 #
 # Author : Johan Lundberg <lundberg@nordu.net>
 #
-from __future__ import absolute_import
-
-import copy
+from __future__ import annotations
 
 from bson.objectid import ObjectId
 from six import string_types
@@ -47,34 +46,31 @@ __author__ = 'lundberg'
 
 class Password(Credential):
 
-    def __init__(self, credential_id=None, salt=None, application=None, created_ts=None, data=None,
-                 raise_on_unknown=True):
-        data_in = data
-        data = copy.copy(data_in)  # to not modify callers data
+    def __init__(self, credential_id: str, salt: str, created_by=None, created_ts=None):
+        super().__init__(created_by=created_by, created_ts=created_ts,
+                         verified=False,
+                         verified_by=None,
+                         verified_ts=None,
+                         proofing_method=None,
+                         proofing_version=None,
+                         )
+        self.credential_id = credential_id
+        self.salt = salt
 
-        if data is None:
-            if created_ts is None:
-                created_ts = True
-            data = dict(id = credential_id,
-                        salt = salt,
-                        created_by = application,
-                        created_ts = created_ts,
-                        )
+    @classmethod
+    def from_dict(cls, data) -> Password:
+        _known_data = ['credential_id', 'salt', 'created_by', 'created_ts']
+        _leftovers = [x for x in data.keys() if x not in _known_data]
+        if _leftovers:
+            raise UserHasUnknownData('Password has unknown data: {!r}'.format(
+                _leftovers,
+            ))
 
-        if 'source' in data:  # TODO: Load and save all users in the database to replace source with created_by
-            data['created_by'] = data.pop('source')
-        Credential.__init__(self, data)
-        if 'id' in data:  # TODO: Load and save all users in the database to replace id with credential_id
-            data['credential_id'] = data.pop('id')
-        self.credential_id = data.pop('credential_id')
-        self.salt = data.pop('salt')
-
-        leftovers = data.keys()
-        if leftovers:
-            if raise_on_unknown:
-                raise UserHasUnknownData('Password {!r} unknown data: {!r}'.format(self.key, leftovers))
-            # Just keep everything that is left as-is
-            self._data.update(data)
+        return cls(credential_id=data['credential_id'],
+                   salt=data['salt'],
+                   created_by=data.get('created_by'),
+                   created_ts=data.get('created_ts'),
+                   )
 
     @property
     def key(self):
@@ -125,17 +121,3 @@ class Password(Credential):
         if not isinstance(value, string_types):
             raise UserDBValueError("Invalid 'salt': {!r}".format(value))
         self._data['salt'] = value
-
-
-def password_from_dict(data, raise_on_unknown=True):
-    """
-    Create a Password instance from a dict.
-
-    :param data: Password parameters from database
-    :param raise_on_unknown: Raise UserHasUnknownData if unrecognized data is encountered
-
-    :type data: dict
-    :type raise_on_unknown: bool
-    :rtype: Password
-    """
-    return Password(data=data, raise_on_unknown=raise_on_unknown)

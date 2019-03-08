@@ -23,12 +23,12 @@ _one_dict = {
 _two_dict = {
     'credential_id': '222222222222222222222222',
     'salt': 'secondPasswordElement',
-    'source': 'test',
+    'created_by': 'test',
 }
 _three_dict = {
     'credential_id': '333333333333333333333333',
     'salt': 'thirdPasswordElement',
-    'source': 'test',
+    'created_by': 'test',
 }
 _four_dict = {
     'version': 'U2F_V2',
@@ -61,7 +61,7 @@ class TestCredentialList(TestCase):
     def test_to_list_of_dicts(self):
         self.assertEqual([], self.empty.to_list_of_dicts(), list)
 
-        self.assertEqual([_one_dict], self.one.to_list_of_dicts(old_userdb_format=True))
+        self.assertEqual([_one_dict], self.one.to_list_of_dicts())
 
     def test_find(self):
         match = self.two.find('222222222222222222222222')

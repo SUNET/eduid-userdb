@@ -30,13 +30,14 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
+from __future__ import annotations
 
 import copy
 from six import string_types
 
 from eduid_userdb.element import VerifiedElement, Element
 from eduid_userdb.element import _set_something_by, _set_something_ts
-from eduid_userdb.exceptions import UserDBValueError
+from eduid_userdb.exceptions import UserDBValueError, ProofingHasUnknownData
 
 
 __author__ = 'lundberg'
@@ -55,31 +56,38 @@ class ProofingElement(VerifiedElement):
         verified_by
         verified_ts
         verification_code
-
-    :param data: element parameters from database
-
-    :type data: dict
     """
-    def __init__(self, application=None, created_ts=None,
-                 verified=False, verified_by=None, verified_ts=None,
-                 verification_code=None, data=None):
-
-        data_in = copy.copy(data)  # to not modify callers data
-
-        if data_in is None:
-            if created_ts is None:
-                created_ts = True
-            data_in = dict(created_by=application,
-                           created_ts=created_ts,
-                           verified=verified,
-                           verified_by=verified_by,
-                           verified_ts=verified_ts,
-                           verification_code=verification_code,
-                           )
-        verification_code = data_in.pop('verification_code', None)
-        VerifiedElement.__init__(self, data_in)
+    def __init__(self, verification_code: str,
+                 created_by=None, created_ts=None,
+                 verified=False, verified_by=None, verified_ts=None):
+        super().__init__(created_by=created_by, created_ts=created_ts,
+                         verified=verified, verified_by=verified_by, verified_ts=verified_ts,
+                         )
         self.verification_code = verification_code
 
+    @classmethod
+    def from_dict(cls, data):
+        _known_data = ['created_by', 'created_ts', 'verified', 'verified_by', 'verified_ts',
+                       'verification_code']
+        _leftovers = [x for x in data.keys() if x not in _known_data]
+        if _leftovers:
+            raise ProofingHasUnknownData('ProofingElement has unknown data: {!r}'.format(
+                _leftovers,
+            ))
+
+        return cls(created_by=data.get('created_by'),
+                   created_ts=data.get('created_ts'),
+                   verified=data['verified'],
+                   verified_by=data['verified_by'],
+                   verified_ts=data['verified_ts'],
+                   verification_code=data['verification_code'],
+                   )
+
+    @property
+    def key(self):
+        raise NotImplementedError('ProofingElement does not currently have a key')
+
+    # -----------------------------------------------------------------
     @property
     def verification_code(self):
         """
@@ -119,17 +127,32 @@ class NinProofingElement(ProofingElement):
 
     :type data: dict
     """
-    def __init__(self, number=None, application=None, created_ts=None,
-                 verified=False, verification_code=None, data=None):
-
-        data = copy.copy(data)
-        if number is None:
-            number = data.pop('number')
-
-        super(NinProofingElement, self).__init__(application=application,
-                                                   created_ts=created_ts, verified=verified,
-                                                   verification_code=verification_code, data=data)
+    def __init__(self, number, created_by=None, created_ts=None,
+                 verified=False, verified_by=None, verified_ts=None,
+                 verification_code=None):
+        super().__init__(created_by=created_by, created_ts=created_ts,
+                         verified=verified, verified_by=verified_by, verified_ts=verified_ts,
+                         verification_code=verification_code)
         self.number = number
+
+    @classmethod
+    def from_dict(cls, data) -> NinProofingElement:
+        _known_data = ['created_by', 'created_ts', 'verified', 'verified_by', 'verified_ts',
+                       'verification_code', 'number']
+        _leftovers = [x for x in data.keys() if x not in _known_data]
+        if _leftovers:
+            raise ProofingHasUnknownData('NinProofingElement has unknown data: {!r}'.format(
+                _leftovers,
+            ))
+
+        return cls(created_by=data.get('created_by'),
+                   created_ts=data.get('created_ts'),
+                   verified=data['verified'],
+                   verified_by=data['verified_by'],
+                   verified_ts=data['verified_ts'],
+                   verification_code=data['verification_code'],
+                   number=data['number']
+                   )
 
     @property
     def number(self):
@@ -175,14 +198,14 @@ class EmailProofingElement(ProofingElement):
 
     :type data: dict
     """
-    def __init__(self, email=None, application=None, created_ts=None,
+    def __init__(self, email=None, created_by=None, created_ts=None,
                  verified=False, verification_code=None, data=None):
 
         data = copy.copy(data)
         if email is None:
             email = data.pop('email')
 
-        super(EmailProofingElement, self).__init__(application=application,
+        super(EmailProofingElement, self).__init__(created_by=created_by,
                                                    created_ts=created_ts, verified=verified,
                                                    verification_code=verification_code, data=data)
         self.email = email
@@ -231,14 +254,14 @@ class PhoneProofingElement(ProofingElement):
 
     :type data: dict
     """
-    def __init__(self, phone=None, application=None, created_ts=None,
+    def __init__(self, phone=None, created_by=None, created_ts=None,
                  verified=False, verification_code=None, data=None):
 
         data = copy.copy(data)
         if not phone:
             phone = data.pop('number')
 
-        super(PhoneProofingElement, self).__init__(application=application,
+        super(PhoneProofingElement, self).__init__(created_by=created_by,
                                                    created_ts=created_ts, verified=verified,
                                                    verification_code=verification_code, data=data)
         self.number = phone
@@ -280,13 +303,22 @@ class SentLetterElement(Element):
     created_by
     created_ts
     """
-    def __init__(self, data):
-        super(SentLetterElement, self).__init__(data)
+    def __init__(self, created_by=None, created_ts=None, is_sent=False, sent_ts=None,
+                 transaction_id=None, address=None):
+        super().__init__(created_by=created_by, created_ts=created_ts)
+        self.is_sent = is_sent
+        self.sent_ts = sent_ts
+        self.transaction_id = transaction_id
+        self.address = address
 
-        self._data['is_sent'] = data.pop('is_sent', False)
-        self._data['sent_ts'] = data.pop('sent_ts', None)
-        self._data['transaction_id'] = data.pop('transaction_id', None)
-        self._data['address'] = data.pop('address', None)
+    @classmethod
+    def from_dict(cls, data) -> SentLetterElement:
+        _known_data = ['created_by', 'created_ts', 'is_sent', 'sent_ts', 'transaction_id', 'address']
+        return cls._default_from_dict(data, _known_data)
+
+    @property
+    def key(self):
+        raise NotImplementedError('SentLetterElement currently has no key')
 
     @property
     def is_sent(self):

@@ -119,7 +119,6 @@ class ChpassUser(User):
         :rtype: dict
         """
         res = deepcopy(self._data)  # avoid caller messing up our private _data
-        res['passwords'] = self.credentials.to_list_of_dicts(
-                old_userdb_format=old_userdb_format)
+        res['passwords'] = self.credentials.to_list_of_dicts()
         return res
 

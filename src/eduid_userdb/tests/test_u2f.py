@@ -76,15 +76,7 @@ class TestU2F(TestCase):
         one = copy.deepcopy(_one_dict)
         one['foo'] = 'bar'
         with self.assertRaises(eduid_userdb.exceptions.UserHasUnknownData):
-            U2F(data=one)
-
-    def test_unknown_input_data_allowed(self):
-        one = copy.deepcopy(_one_dict)
-        one['foo'] = 'bar'
-        addr = U2F(data=one, raise_on_unknown=False)
-        out = addr.to_dict()
-        self.assertIn('foo', out)
-        self.assertEqual(out['foo'], one['foo'])
+            U2F.from_dict(one)
 
     def test_created_by(self):
         this = self.three.find(_keyid(_three_dict))

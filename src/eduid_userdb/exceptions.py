@@ -159,3 +159,10 @@ class EventHasUnknownData(BadEvent):
     One or more elements of the event could not be interpreted.
     """
     pass
+
+
+class ProofingHasUnknownData(EduIDUserDBError):
+    """
+    One or more elements of the user could not be interpreted.
+    """
+    pass
