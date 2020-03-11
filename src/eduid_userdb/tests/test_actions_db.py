@@ -30,7 +30,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-from copy import deepcopy
 from bson import ObjectId
 from eduid_userdb.actions.db import ActionDB
 from eduid_userdb.testing import MongoTestCase
@@ -46,42 +45,42 @@ EPPN4 = 'hussa-sussa'
 
 
 DUMMY_ACTION = {
-        '_id': ObjectId('111111111111111111111111'),
-        'eppn': EPPN3,
-        'action': 'dummy',
-        'preference': 200, 
-        'params': {
-            }
-        }
+    '_id': ObjectId('111111111111111111111111'),
+    'eppn': EPPN3,
+    'action': 'dummy',
+    'preference': 200,
+    'params': {
+    }
+}
 
 TOU_ACTION = {
-        '_id': ObjectId('222222222222222222222222'),
-        'eppn': EPPN3,  # same eppn as DUMMY_ACTION
-        'action': 'tou',
-        'preference': 100,
-        'params': {
-            'version': 'test-version'
-            }
-        }
+    '_id': ObjectId('222222222222222222222222'),
+    'eppn': EPPN3,  # same eppn as DUMMY_ACTION
+    'action': 'tou',
+    'preference': 100,
+    'params': {
+        'version': 'test-version'
+    }
+}
 
 DUMMY_ACTION_USERID = {
-        '_id': ObjectId('111111111111111111111111'),
-        'user_oid': ObjectId(USERID3),
-        'action': 'dummy',
-        'preference': 200, 
-        'params': {
-            }
-        }
+    '_id': ObjectId('111111111111111111111111'),
+    'user_oid': ObjectId(USERID3),
+    'action': 'dummy',
+    'preference': 200,
+    'params': {
+    }
+}
 
 TOU_ACTION_USERID = {
-        '_id': ObjectId('222222222222222222222222'),
-        'user_oid': ObjectId(USERID3),  # same user_oid as DUMMY_ACTION
-        'action': 'tou',
-        'preference': 100,
-        'params': {
-            'version': 'test-version'
-            }
-        }
+    '_id': ObjectId('222222222222222222222222'),
+    'user_oid': ObjectId(USERID3),  # same user_oid as DUMMY_ACTION
+    'action': 'tou',
+    'preference': 100,
+    'params': {
+        'version': 'test-version'
+    }
+}
 
 
 class TestActionsDB(MongoTestCase):
@@ -118,7 +117,7 @@ class TestActionsDB(MongoTestCase):
         action.result = {'test': True}
         self.actionsdb.update_action(action)
         # Saving a result on the action should make get_next_action advance to the next one
-        next_action = self.actionsdb.get_next_action(EPPN3)
+        self.actionsdb.get_next_action(EPPN3)
 
 
 class TestActionsDBUserid(MongoTestCase):
@@ -155,5 +154,4 @@ class TestActionsDBUserid(MongoTestCase):
         action.result = {'test': True}
         self.actionsdb.update_action(action)
         # Saving a result on the action should make get_next_action advance to the next one
-        next_action = self.actionsdb.get_next_action(USERID3)
-
+        self.actionsdb.get_next_action(USERID3)

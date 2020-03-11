@@ -79,4 +79,3 @@ class ProfileTest(TestCase):
 
         with self.assertRaises(DuplicateElementViolation):
             ProfileList([profile, profile2])
-

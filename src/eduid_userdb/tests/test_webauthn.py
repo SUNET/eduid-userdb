@@ -29,6 +29,7 @@ _three_dict = {
     'attest_obj': 'foo',
 }
 
+
 def _keyid(key):
     return 'sha256:' + sha256(key['keyhandle'].encode('utf-8') +
                               key['credential_data'].encode('utf-8')
@@ -122,7 +123,6 @@ class TestWebauthn(TestCase):
         self.assertEqual(this.proofing_method, None)
         with self.assertRaises(eduid_userdb.exceptions.UserDBValueError):
             this.proofing_method = False
-
 
     def test_proofing_version(self):
         this = self.three.find(_keyid(_three_dict))

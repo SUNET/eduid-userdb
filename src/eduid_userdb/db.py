@@ -2,15 +2,13 @@ from __future__ import absolute_import
 
 import copy
 import warnings
-from typing import Optional, Mapping, Union, List, Any
+from typing import Optional, Mapping, Union, List
 
 import pymongo
 import logging
 
 from bson import ObjectId
-from pymongo.cursor import Cursor
 from pymongo.errors import PyMongoError
-from pymongo.results import DeleteResult
 from pymongo.uri_parser import parse_uri
 
 from eduid_userdb.exceptions import DocumentDoesNotExist, MultipleDocumentsReturned
@@ -356,4 +354,3 @@ class BaseDB(object):
 
     def close(self):
         self._db.close()
-

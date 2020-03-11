@@ -16,9 +16,9 @@ _action_dict = {
     'preference': 100,
     'params': {
         'version': '2014-v2'
-        },
+    },
     'result': None,
-    }
+}
 
 _action_dict_userid = {
     '_id': bson.ObjectId('234567890123456789012301'),
@@ -28,9 +28,9 @@ _action_dict_userid = {
     'preference': 100,
     'params': {
         'version': '2014-v2'
-        },
+    },
     'result': None,
-    }
+}
 
 
 class TestAction(TestCase):
@@ -119,7 +119,7 @@ class TestAction(TestCase):
         action_dict = copy.copy(_action_dict)
         action_dict['ho'] = 'ho ho'
         with self.assertRaises(eduid_userdb.exceptions.ActionHasUnknownData):
-            action = Action(data=action_dict)
+            Action(data=action_dict)
 
     def test_action_dont_raise_on_unknown(self):
         action_dict = copy.copy(_action_dict)

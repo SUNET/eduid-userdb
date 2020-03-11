@@ -158,24 +158,24 @@ class TestEventList(TestCase):
 
     def test_loading_duplicate_tou_events(self):
         data = [
-                {
-                        "event_id" : bson.ObjectId("5699fdbed300e400155be719"),
-                        "version" : "2014-v1",
-                        "created_ts" : datetime.datetime.fromisoformat("2016-01-16T08:22:22.520"),
-                        "created_by" : "signup"
-                },
-                {
-                        "event_id" : bson.ObjectId("581c3084df7c670064b583d6"),
-                        "version" : "2016-v1",
-                        "created_ts" : datetime.datetime.fromisoformat("2016-11-04T06:53:56.217"),
-                        "created_by" : "eduid_tou_plugin"
-                },
-                {
-                        "event_id" : bson.ObjectId("581c308e70971c006488d7d7"),
-                        "version" : "2016-v1",
-                        "created_ts" : datetime.datetime.fromisoformat("2016-11-04T06:54:06.676"),
-                        "created_by" : "eduid_tou_plugin"
-                }
+            {
+                "event_id": bson.ObjectId("5699fdbed300e400155be719"),
+                "version": "2014-v1",
+                "created_ts": datetime.datetime.fromisoformat("2016-01-16T08:22:22.520"),
+                "created_by": "signup"
+            },
+            {
+                "event_id": bson.ObjectId("581c3084df7c670064b583d6"),
+                "version": "2016-v1",
+                "created_ts": datetime.datetime.fromisoformat("2016-11-04T06:53:56.217"),
+                "created_by": "eduid_tou_plugin"
+            },
+            {
+                "event_id": bson.ObjectId("581c308e70971c006488d7d7"),
+                "version": "2016-v1",
+                "created_ts": datetime.datetime.fromisoformat("2016-11-04T06:54:06.676"),
+                "created_by": "eduid_tou_plugin"
+            }
         ]
         el = ToUList(data)
         self.assertEqual(el.count, 2)

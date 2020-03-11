@@ -40,7 +40,7 @@ import datetime
 
 from dataclasses import dataclass, asdict
 
-from typing import Optional, Mapping, MutableMapping, Iterable, Set
+from typing import Optional, Mapping, MutableMapping, Set
 
 from eduid_userdb.exceptions import UserDBValueError
 from eduid_userdb.proofing.element import NinProofingElement, SentLetterElement
@@ -48,7 +48,6 @@ from eduid_userdb.proofing.element import EmailProofingElement, PhoneProofingEle
 
 
 __author__ = 'lundberg'
-
 
 
 @dataclass()

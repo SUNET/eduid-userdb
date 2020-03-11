@@ -35,6 +35,7 @@ class RawDb(object):
     *with backups* of the data before and after modification, and an easily searchable
     log detailing all the changes.
     """
+
     def __init__(self, myname=None, backupbase='/root/raw_db_changes'):
         self._client = get_client()
         self._start_time = datetime.datetime.fromtimestamp(int(time.time())).isoformat(sep = '_').replace(':', '')
@@ -129,7 +130,7 @@ class RawDb(object):
         def safe_encode(k, v):
             try:
                 return bson.json_util.dumps({k: v})
-            except:
+            except Exception:
                 sys.stderr.write('Failed encoding key {!r}: {!r}\n\n'.format(k, v))
                 raise
 

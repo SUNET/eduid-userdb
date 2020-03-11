@@ -52,6 +52,7 @@ class Credential(VerifiedElement):
     only for credentials until we know we want it for other types of verifed
     elements too.
     """
+
     def __init__(self, data):
         super(Credential, self).__init__(data)
 

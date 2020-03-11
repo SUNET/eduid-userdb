@@ -371,7 +371,7 @@ class UserDB(BaseDB):
             error_msg = f'Invalid update operator: {bad_operators}'
             logger.error(error_msg)
             raise eduid_userdb.exceptions.EduIDDBError(error_msg)
-        
+
         updated_doc = self._coll.find_one_and_update(filter=query_filter, update=operations,
                                                      return_document=ReturnDocument.AFTER, upsert=True)
         logger.debug(f'Updated/inserted document: {updated_doc}')

@@ -44,7 +44,6 @@ import subprocess
 import time
 import unittest
 from copy import deepcopy
-from datetime import date, timedelta
 
 import pymongo
 from bson import ObjectId
@@ -58,8 +57,8 @@ logger = logging.getLogger(__name__)
 MONGO_URI_AM_TEST = 'mongodb://localhost:27017/eduid_userdb_test'
 MONGO_URI_TEST = 'mongodb://localhost:27017/eduid_dashboard_test'
 
-#eduid_userdb.db.DEFAULT_MONGODB_URI = MONGO_URI_AM_TEST
-#eduid_userdb.db.DEFAULT_MONGODB_NAME = 'eduid_userdb_test'
+# eduid_userdb.db.DEFAULT_MONGODB_URI = MONGO_URI_AM_TEST
+# eduid_userdb.db.DEFAULT_MONGODB_NAME = 'eduid_userdb_test'
 
 
 MOCKED_USER_STANDARD = {
@@ -71,11 +70,11 @@ MOCKED_USER_STANDARD = {
                          'verified': True,
                          'primary': True,
                          }],
-    #'photo': 'https://pointing.to/your/photo',
+    # 'photo': 'https://pointing.to/your/photo',
     'preferredLanguage': 'en',
     'eduPersonPrincipalName': 'hubba-bubba',
-    #'modified_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"),
-    #'terminated': None,
+    # 'modified_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"),
+    # 'terminated': None,
     'eduPersonEntitlement': [
         'urn:mace:eduid.se:role:admin',
         'urn:mace:eduid.se:role:student',
@@ -106,22 +105,23 @@ MOCKED_USER_STANDARD = {
         'id': ObjectId('112345678901234567890123'),
         'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
     }],
-    #'postalAddress': [{
+    # 'postalAddress': [{
     #    'type': 'home',
     #    'country': 'SE',
     #    'address': "Long street, 48",
     #    'postalCode': "123456",
     #    'locality': "Stockholm",
     #    'verified': True,
-    #}, {
+    # }, {
     #    'type': 'work',
     #    'country': 'ES',
     #    'address': "Calle Ancha, 49",
     #    'postalCode': "123456",
     #    'locality': "Punta Umbria",
     #    'verified': False,
-    #}],
+    # }],
 }
+
 
 class MockedUserDB(UserDB):
     """
@@ -338,6 +338,6 @@ class MongoTestCase(unittest.TestCase):
         self.amdb.close()
         super(MongoTestCase, self).tearDown()
 
-    #def mongodb_uri(self, dbname):
+    # def mongodb_uri(self, dbname):
     #    self.assertIsNotNone(dbname)
     #    return self.tmp_db.uri + '/' + dbname

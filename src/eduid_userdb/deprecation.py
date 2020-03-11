@@ -35,6 +35,7 @@ import inspect
 from six import string_types
 from functools import wraps
 
+
 # https://stackoverflow.com/questions/2536307/how-do-i-deprecate-python-functions/40301488#40301488
 def deprecated(reason):
     """
@@ -107,4 +108,3 @@ def deprecated(reason):
 
     else:
         raise TypeError(repr(type(reason)))
-

@@ -57,7 +57,7 @@ class ResetPasswordState(object):
         # eppn
         self._data['eduPersonPrincipalName'] = self._data_in.pop('eduPersonPrincipalName')
 
-        #method
+        # method
         self._data['method'] = self._data_in.pop('method', None)
 
         # extra security alternatives

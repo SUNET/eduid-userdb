@@ -177,7 +177,7 @@ class DashboardLegacyUser(object):
 
         :return: bson.ObjectId
         '''
-        if not '_id' in self._mongo_doc:
+        if '_id' not in self._mongo_doc:
             raise UserDBValueError('No user_id in user')
         return self._mongo_doc['_id']
 
@@ -429,7 +429,7 @@ class DashboardLegacyUser(object):
         self._mongo_doc['postalAddress'] = addresses
 
     def retrieve_address(self, request, verified_nin):
-        """ 
+        """
         Get the official postal address for a user
         from the government service,
         remove any previous official address that the user might have,
@@ -530,7 +530,7 @@ class DashboardLegacyUser(object):
             {
             'id': ObjectId('112345678901234567890123'),
             'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
-            'source' : 'signup', 
+            'source' : 'signup',
             'created_ts' : ISODate('2013-11-28T13:33:44.479Z')
             }
 
@@ -547,7 +547,7 @@ class DashboardLegacyUser(object):
             {
             'id': ObjectId('112345678901234567890123'),
             'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
-            'source' : 'signup', 
+            'source' : 'signup',
             'created_ts' : ISODate('2013-11-28T13:33:44.479Z')
             }
         This removes any previous list of passwords
@@ -560,7 +560,7 @@ class DashboardLegacyUser(object):
 
     def get_entitlements(self):
         '''
-        Get the user's entitlements as a list of 
+        Get the user's entitlements as a list of
         names within the MACE URN urn:mace:eduid.se:role namespace,
         for example:
             [
@@ -574,7 +574,7 @@ class DashboardLegacyUser(object):
 
     def set_entitlements(self, entitlements):
         '''
-        Set the user's entitlements as a list of 
+        Set the user's entitlements as a list of
         names within the MACE URN urn:mace:eduid.se:role namespace, like:
             [
             'urn:mace:eduid.se:role:admin',

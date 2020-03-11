@@ -124,7 +124,7 @@ class Event(Element):
         self._data['event_id'] = value
 
     # -----------------------------------------------------------------
-    def to_dict(self, mixed_format: bool=False) -> Dict[str, Any]:
+    def to_dict(self, mixed_format: bool = False) -> Dict[str, Any]:
         """
         Convert Element to a dict, that can be used to reconstruct the Element later.
 
@@ -152,7 +152,7 @@ class EventList(ElementList):
     :type event_class: object
     """
 
-    def __init__(self, events, raise_on_unknown=True, event_class: Type[Event]=Event):
+    def __init__(self, events, raise_on_unknown=True, event_class: Type[Event] = Event):
         self._event_class = event_class
         ElementList.__init__(self, elements=[])
 
@@ -182,7 +182,7 @@ class EventList(ElementList):
             raise DuplicateElementViolation("Event {!s} already in list".format(event.key))
         super(EventList, self).add(event)
 
-    def to_list_of_dicts(self, mixed_format: bool=False) -> List[Dict[str, Any]]:
+    def to_list_of_dicts(self, mixed_format: bool = False) -> List[Dict[str, Any]]:
         """
         Get the elements in a serialized format that can be stored in MongoDB.
 
@@ -191,7 +191,7 @@ class EventList(ElementList):
         return [this.to_dict(mixed_format=mixed_format) for this in self._elements if isinstance(this, Event)]
 
 
-def event_from_dict(data: Dict[str, Any], raise_on_unknown: bool=True):
+def event_from_dict(data: Dict[str, Any], raise_on_unknown: bool = True):
     """
     Create an Event instance (probably really a subclass of Event) from a dict.
 

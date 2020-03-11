@@ -68,7 +68,7 @@ class ProofingStateTest(TestCase):
                                     modified_ts=None,
                                     proofing_letter=SentLetterElement(data={}))
         state.proofing_letter.address = ADDRESS
-        x = state.proofing_letter.to_dict()
+        _ = state.proofing_letter.to_dict()
         state_dict = state.to_dict()
         self.assertEqual(sorted(state_dict.keys()), ['_id', 'eduPersonPrincipalName', 'modified_ts', 'nin',
                                                      'proofing_letter'])

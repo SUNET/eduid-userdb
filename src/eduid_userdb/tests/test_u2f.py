@@ -10,12 +10,12 @@ from eduid_userdb.credentials import CredentialList, U2F
 
 __author__ = 'lundberg'
 
-#{'passwords': {
+# {'passwords': {
 #    'id': password_id,
 #    'salt': salt,
 #    'source': 'signup',
 #    'created_ts': datetime.datetime.utcnow(),
-#}}
+# }}
 
 _one_dict = {
     'version': 'U2F_V2',
@@ -35,6 +35,7 @@ _three_dict = {
     'keyhandle': 'thirdU2FElement',
     'public_key': 'foo',
 }
+
 
 def _keyid(key):
     return 'sha256:' + sha256(key['keyhandle'].encode('utf-8') +
@@ -128,7 +129,6 @@ class TestU2F(TestCase):
         self.assertEqual(this.proofing_method, None)
         with self.assertRaises(eduid_userdb.exceptions.UserDBValueError):
             this.proofing_method = False
-
 
     def test_proofing_version(self):
         this = self.three.find(_keyid(_three_dict))

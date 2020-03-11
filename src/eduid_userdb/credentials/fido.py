@@ -155,7 +155,6 @@ class U2F(FidoCredential):
             # Just keep everything that is left as-is
             self._data.update(data)
 
-
     @property
     def key(self):
         """
@@ -279,7 +278,6 @@ class Webauthn(FidoCredential):
                 ))
             # Just keep everything that is left as-is
             self._data.update(data)
-
 
     @property
     def key(self):

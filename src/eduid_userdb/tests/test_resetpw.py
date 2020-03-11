@@ -29,13 +29,7 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-import bson
-from datetime import datetime
-
-import eduid_userdb
 from eduid_userdb.testing import MongoTestCase
-from eduid_userdb import User
-from eduid_userdb.reset_password import ResetPasswordState
 from eduid_userdb.reset_password import ResetPasswordEmailState
 from eduid_userdb.reset_password import ResetPasswordEmailAndPhoneState
 from eduid_userdb.reset_password import ResetPasswordStateDB
@@ -93,10 +87,10 @@ class TestResetPasswordStateDB(MongoTestCase):
                                               email_code="dummy-code")
 
         email_state.extra_security = {'phone_numbers': [
-                                        {'number': '+99999999999',
-                                         'primary': True,
-                                         'verified': True}
-                                            ]}
+                                      {'number': '+99999999999',
+                                       'primary': True,
+                                       'verified': True}
+                                      ]}
         self.resetpw_db.save(email_state)
 
         state = self.resetpw_db.get_state_by_eppn("hubba-bubba")

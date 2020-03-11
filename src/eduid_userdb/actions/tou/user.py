@@ -32,8 +32,6 @@
 
 __author__ = 'eperez'
 
-import bson
-
 from eduid_userdb import User
 from eduid_userdb.exceptions import UserMissingData
 
@@ -57,7 +55,7 @@ class ToUUser(User):
     """
 
     def __init__(self, userid = None, eppn = None, tou = None, data = None,
-                                         raise_on_unknown = True):
+                 raise_on_unknown = True):
         """
         """
         if data is None:

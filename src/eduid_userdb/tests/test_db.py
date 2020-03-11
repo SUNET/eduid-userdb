@@ -59,7 +59,7 @@ class TestMongoDB(TestCase):
         mdb = db.MongoDB(uri, db_name='testdb', connection_factory=DummyConnection)
         conn = mdb.get_connection()
         self.assertIsNotNone(conn)
-        database = mdb.get_database()
+        _ = mdb.get_database()
         self.assertEqual(mdb._db_uri, uri)
         self.assertEqual(mdb._database_name, 'testdb')
         self.assertEqual(mdb.sanitized_uri, 'mongodb://john:secret@db.example.com:1111/testdb')

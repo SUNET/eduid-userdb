@@ -124,18 +124,18 @@ class TestChpassUser(TestCase):
         one = copy.deepcopy(_one_dict)
         password = Password(data = one, raise_on_unknown = False)
         with self.assertRaises(UserMissingData):
-            user = ChpassUser(passwords=[password])
+            _ = ChpassUser(passwords=[password])
 
     def test_missing_tou(self):
         with self.assertRaises(UserMissingData):
-            user = ChpassUser(userid=USERID)
+            _ = ChpassUser(userid=USERID)
 
     def test_unknown_data(self):
         one = copy.deepcopy(_one_dict)
         password = Password(data = one, raise_on_unknown = False)
         data = dict(_id=USERID, passwords=[password], foo='bar')
         with self.assertRaises(UserHasUnknownData):
-            user = ChpassUser(data=data)
+            _ = ChpassUser(data=data)
 
     def test_unknown_data_dont_raise(self):
         one = copy.deepcopy(_one_dict)

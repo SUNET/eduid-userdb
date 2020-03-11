@@ -42,4 +42,3 @@ class ChpassUserDB(UserDB):
 
     def __init__(self, db_uri, db_name='eduid_actions', collection='chpass'):
         UserDB.__init__(self, db_uri, db_name, collection)
-

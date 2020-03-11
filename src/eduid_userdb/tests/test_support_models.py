@@ -1,8 +1,7 @@
 from eduid_userdb.data_samples import (NEW_USER_EXAMPLE,
-                                      NEW_SIGNUP_USER_EXAMPLE,
-                                      NEW_COMPLETED_SIGNUP_USER_EXAMPLE,
-                                      NEW_DASHBOARD_USER_EXAMPLE)
-from eduid_userdb.data_samples import OLD_USER_EXAMPLE, OLD_VERIFICATIONS_EXAMPLE
+                                       NEW_SIGNUP_USER_EXAMPLE,
+                                       NEW_COMPLETED_SIGNUP_USER_EXAMPLE)
+from eduid_userdb.data_samples import OLD_USER_EXAMPLE
 from eduid_userdb import User
 from eduid_userdb.signup import SignupUser
 from eduid_userdb.support import models

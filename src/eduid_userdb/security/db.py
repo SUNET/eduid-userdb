@@ -32,7 +32,6 @@
 #
 from __future__ import absolute_import
 
-from pymongo.errors import DuplicateKeyError
 from eduid_userdb.db import BaseDB
 from eduid_userdb.userdb import UserDB
 from eduid_userdb.exceptions import DocumentOutOfSync, MultipleDocumentsReturned

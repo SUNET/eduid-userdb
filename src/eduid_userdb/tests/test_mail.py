@@ -279,4 +279,3 @@ class TestMailAddress(TestCase):
             this.created_ts = None
         with self.assertRaises(eduid_userdb.exceptions.UserDBValueError):
             this.created_ts = True
-

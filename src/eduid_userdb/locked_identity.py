@@ -100,6 +100,7 @@ class LockedIdentityList(ElementList):
     :param locked_identities: List of LockedIdentityElements
     :type locked_identities: [dict | Element]
     """
+
     def __init__(self, locked_identities):
         elements = []
         for item in locked_identities:

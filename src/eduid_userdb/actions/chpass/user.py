@@ -57,7 +57,7 @@ class ChpassUser(User):
     """
 
     def __init__(self, userid = None, passwords = None, data = None,
-                                         raise_on_unknown = True):
+                 raise_on_unknown = True):
         """
         """
         if data is None:
@@ -91,7 +91,7 @@ class ChpassUser(User):
                 ))
             # Just keep everything that is left as-is
             self._data.update(self._data_in)
-    
+
     @classmethod
     def from_central_user(cls, user):
         '''
@@ -101,10 +101,10 @@ class ChpassUser(User):
         :type user: eduid_userdb.user.User
         '''
         data = {
-                '_id': user.user_id,
-                'passwords': user.credentials.to_list_of_dicts(),
-                'modified_ts': user.modified_ts
-            }
+            '_id': user.user_id,
+            'passwords': user.credentials.to_list_of_dicts(),
+            'modified_ts': user.modified_ts
+        }
         return cls(data=data)
 
     # -----------------------------------------------------------------
@@ -119,7 +119,5 @@ class ChpassUser(User):
         :rtype: dict
         """
         res = deepcopy(self._data)  # avoid caller messing up our private _data
-        res['passwords'] = self.credentials.to_list_of_dicts(
-                old_userdb_format=old_userdb_format)
+        res['passwords'] = self.credentials.to_list_of_dicts(old_userdb_format=old_userdb_format)
         return res
-

@@ -164,4 +164,3 @@ class UserDBWrapper(UserDB):
                 return al2_urn
 
         return al1_urn
-

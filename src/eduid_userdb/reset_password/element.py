@@ -52,7 +52,6 @@ class CodeElement(Element):
         self.code = code
         self.is_verified = verified
 
-
     @property
     def key(self) -> str:
         """Get element key."""
@@ -109,4 +108,3 @@ class CodeElement(Element):
         if isinstance(code_or_element, CodeElement):
             return code_or_element
         raise ValueError(f'Can\'t create CodeElement from input: {code_or_element}')
-

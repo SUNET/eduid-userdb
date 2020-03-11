@@ -59,6 +59,7 @@ class User(object):
     :param data: MongoDB document representing a user
     :type  data: dict
     """
+
     def __init__(self, data: Dict[str, Any], raise_on_unknown: bool = True):
         self._data_in = copy.deepcopy(data)  # to not modify callers data
         self._data_orig = copy.deepcopy(data)  # to not modify callers data

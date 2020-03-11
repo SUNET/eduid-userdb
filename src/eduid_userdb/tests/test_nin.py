@@ -149,7 +149,7 @@ class TestNinList(TestCase):
         one = copy.deepcopy(_one_dict)
         one['verified'] = False
         with self.assertRaises(eduid_userdb.element.PrimaryElementViolation):
-            this = NinList([one])
+            _ = NinList([one])
 
 
 class TestNin(TestCase):
@@ -280,4 +280,3 @@ class TestNin(TestCase):
             this.created_ts = None
         with self.assertRaises(eduid_userdb.exceptions.UserDBValueError):
             this.created_ts = True
-

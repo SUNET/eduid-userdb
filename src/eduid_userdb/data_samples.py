@@ -1,5 +1,5 @@
 '''
-Some data samples, old and new. 
+Some data samples, old and new.
 '''
 
 from datetime import datetime
@@ -25,7 +25,7 @@ OLD_USER_EXAMPLE = {
         'email': 'johnsmith3@example.com',
         'verified': False,
     }],
-    'norEduPersonNIN': ['197801011234',],
+    'norEduPersonNIN': ['197801011234'],
     'postalAddress': [{
         'type': 'home',
         'country': 'SE',
@@ -53,7 +53,7 @@ OLD_USER_EXAMPLE = {
         'id': ObjectId('112345678901234567890123'),
         'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
         'source': 'signup',
-        'created_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"), 
+        'created_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"),
     }],
     'eduPersonEntitlement': [
         'urn:mace:eduid.se:role:admin',
@@ -97,7 +97,7 @@ NEW_USER_EXAMPLE = {
     'mailAliases': [{
         'email': 'johnsmith@example.com',
         'created_by': 'signup',
-        'created_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"), 
+        'created_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"),
         'verified': True,
         'verified_by': 'signup',
         'verified_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"),
@@ -105,7 +105,7 @@ NEW_USER_EXAMPLE = {
     }, {
         'email': 'johnsmith2@example.com',
         'created_by': 'dashboard',
-        'created_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"), 
+        'created_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"),
         'verified': False,
         'verified_by': 'dashboard',
         'verified_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"),
@@ -113,7 +113,7 @@ NEW_USER_EXAMPLE = {
     }],
     'nins': [{
         'number': '197801011234',
-        'created_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"), 
+        'created_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"),
         'created_by': 'dashboard',
         'verified': True,
         'verified_by': 'dashboard',
@@ -121,7 +121,7 @@ NEW_USER_EXAMPLE = {
         'primary': True,
     }, {
         'number': '197801011235',
-        'created_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"), 
+        'created_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"),
         'created_by': 'dashboard',
         'verified': True,
         'verified_by': 'dashboard',
@@ -130,7 +130,7 @@ NEW_USER_EXAMPLE = {
     }],
     'phone': [{
         'number': '+34609609609',
-        'created_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"), 
+        'created_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"),
         'created_by': 'dashboard',
         'verified': True,
         'verified_by': 'dashboard',
@@ -138,7 +138,7 @@ NEW_USER_EXAMPLE = {
         'primary': True,
     }, {
         'number': '+34 6096096096',
-        'created_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"), 
+        'created_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"),
         'created_by': 'dashboard',
         'verified': False,
         'verified_by': 'dashboard',
@@ -149,7 +149,7 @@ NEW_USER_EXAMPLE = {
         'id': ObjectId('112345678901234567890123'),
         'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
         'created_by': 'signup',
-        'created_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"), 
+        'created_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"),
     }],
     'entitlements': [
         'urn:mace:eduid.se:role:admin',
@@ -171,7 +171,7 @@ NEW_SIGNUP_USER_EXAMPLE.update({
     'pending_mail_address': {
         'email': 'johnsmith2@example.com',
         'created_by': 'dashboard',
-        'created_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"), 
+        'created_ts': datetime.strptime("2013-09-02T10:23:25", "%Y-%m-%dT%H:%M:%S"),
         'verified': False,
         'verified_by': None,
         'verified_ts': None,

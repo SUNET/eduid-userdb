@@ -48,6 +48,7 @@ class MailAddress(PrimaryElement):
     :type data: dict
     :type raise_on_unknown: bool
     """
+
     def __init__(self, email=None, application=None, verified=False, created_ts=None, primary=None,
                  data=None, raise_on_unknown=True):
         data_in = data

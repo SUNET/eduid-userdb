@@ -37,7 +37,6 @@
 User and user database module.
 """
 from bson import ObjectId
-from six import string_types
 import logging
 from typing import Optional, Union
 

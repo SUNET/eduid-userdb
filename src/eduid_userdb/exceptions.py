@@ -10,6 +10,7 @@ class EduIDDBError(Exception):
     :param reason: Reason for exception (typically a string)
     :type reason: object
     """
+
     def __init__(self, reason):
         Exception.__init__(self)
         self.reason = reason

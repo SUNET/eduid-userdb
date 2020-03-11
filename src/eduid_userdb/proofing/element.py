@@ -60,6 +60,7 @@ class ProofingElement(VerifiedElement):
 
     :type data: dict
     """
+
     def __init__(self, application=None, created_ts=None,
                  verified=False, verified_by=None, verified_ts=None,
                  verification_code=None, data=None):
@@ -119,6 +120,7 @@ class NinProofingElement(ProofingElement):
 
     :type data: dict
     """
+
     def __init__(self, number=None, application=None, created_ts=None,
                  verified=False, verification_code=None, data=None):
 
@@ -127,8 +129,8 @@ class NinProofingElement(ProofingElement):
             number = data.pop('number')
 
         super(NinProofingElement, self).__init__(application=application,
-                                                   created_ts=created_ts, verified=verified,
-                                                   verification_code=verification_code, data=data)
+                                                 created_ts=created_ts, verified=verified,
+                                                 verification_code=verification_code, data=data)
         self.number = number
 
     @property

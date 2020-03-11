@@ -2,7 +2,6 @@
 
 from __future__ import absolute_import
 
-from bson import ObjectId
 import logging
 
 from eduid_userdb.userdb import BaseDB

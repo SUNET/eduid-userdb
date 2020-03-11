@@ -35,7 +35,6 @@ from typing import Union, Optional, List, Tuple, Dict, Any
 from bson import ObjectId
 from bson.errors import InvalidId
 from pymongo.cursor import Cursor
-from pymongo.results import DeleteResult
 
 from eduid_userdb.actions import Action
 from eduid_userdb.db import BaseDB

@@ -4,7 +4,6 @@ from __future__ import absolute_import
 
 import bson
 import copy
-import datetime
 from six import string_types
 
 from eduid_userdb.element import _set_something_ts

@@ -42,4 +42,3 @@ class ToUUserDB(UserDB):
 
     def __init__(self, db_uri, db_name='eduid_actions', collection='tou'):
         UserDB.__init__(self, db_uri, db_name, collection)
-

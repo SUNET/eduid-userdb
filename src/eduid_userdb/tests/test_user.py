@@ -13,6 +13,7 @@ from eduid_userdb.credentials import METHOD_SWAMID_AL2_MFA
 
 __author__ = 'ft'
 
+
 def _keyid(kh):
     return 'sha256:' + sha256(kh.encode('utf-8')).hexdigest()
 
@@ -245,13 +246,13 @@ class TestUser(TestCase):
         data = {u'_id': ObjectId(),
                 u'eduPersonPrincipalName': u'test-test',
                 u'mailAliases': [{u'email': mail,
-                u'verified': True,
-                u'csrf': u'6ae1d4e95305b72318a683883e70e3b8e302cd75'}],
+                                  u'verified': True,
+                                  u'csrf': u'6ae1d4e95305b72318a683883e70e3b8e302cd75'}],
                 u'passwords': [{u'created_ts': datetime.datetime(2014, 9, 4, 8, 57, 7, 362000),
                                 u'credential_id': str(ObjectId()),
                                 u'salt': u'salt',
                                 u'source': u'dashboard'}],
-               }
+                }
         user = User(data)
         self.assertEqual(mail, user.mail_addresses.primary.email)
 
@@ -307,13 +308,13 @@ class TestUser(TestCase):
                 u'mail': u'test@gmail.com',
                 u'mailAliases': [{u'email': u'test@gmail.com', u'verified': True}],
                 u'phone': [{u'csrf': u'47d42078719b8377db622c3ff85b94840b483c92',
-                             u'number': number1,
-                             u'primary': False,
-                             u'verified': False},
-                            {u'csrf': u'47d42078719b8377db622c3ff85b94840b483c92',
-                             u'number': number2,
-                             u'primary': False,
-                             u'verified': False}],
+                            u'number': number1,
+                            u'primary': False,
+                            u'verified': False},
+                           {u'csrf': u'47d42078719b8377db622c3ff85b94840b483c92',
+                            u'number': number2,
+                            u'primary': False,
+                            u'verified': False}],
                 u'passwords': [{u'created_ts': datetime.datetime(2014, 6, 29, 17, 52, 37, 830000),
                                 u'credential_id': str(ObjectId()),
                                 u'salt': u'$NDNv1H1$foo$32$32$',
@@ -337,13 +338,13 @@ class TestUser(TestCase):
                 u'mail': u'test@gmail.com',
                 u'mailAliases': [{u'email': u'test@gmail.com', u'verified': True}],
                 u'phone': [{u'csrf': u'47d42078719b8377db622c3ff85b94840b483c92',
-                             u'number': number1,
-                             u'primary': False,
-                             u'verified': False},
-                            {u'csrf': u'47d42078719b8377db622c3ff85b94840b483c92',
-                             u'number': number2,
-                             u'primary': False,
-                             u'verified': True}],
+                            u'number': number1,
+                            u'primary': False,
+                            u'verified': False},
+                           {u'csrf': u'47d42078719b8377db622c3ff85b94840b483c92',
+                            u'number': number2,
+                            u'primary': False,
+                            u'verified': True}],
                 u'passwords': [{u'created_ts': datetime.datetime(2014, 6, 29, 17, 52, 37, 830000),
                                 u'credential_id': str(ObjectId()),
                                 u'salt': u'$NDNv1H1$foo$32$32$',
@@ -565,11 +566,11 @@ class TestUser(TestCase):
     def test_both_mobile_and_phone(self):
         """ Test user that has both 'mobile' and 'phone' """
         phone = [{'number': '+4673123', 'primary': True, 'verified': True},
-                {'created_by': 'phone',
-                 'created_ts': datetime.datetime.utcnow(),
-                 'number': '+4670999',
-                 'primary': False,
-                 'verified': False}]
+                 {'created_by': 'phone',
+                  'created_ts': datetime.datetime.utcnow(),
+                  'number': '+4670999',
+                  'primary': False,
+                  'verified': False}]
         user = User(data={
             '_id': ObjectId(),
             'eduPersonPrincipalName': 'test-test',

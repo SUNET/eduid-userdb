@@ -186,7 +186,7 @@ class TestPhoneNumberList(TestCase):
         one = copy.deepcopy(_one_dict)
         one['verified'] = False
         with self.assertRaises(eduid_userdb.element.PrimaryElementViolation):
-            this = PhoneNumberList([one])
+            _ = PhoneNumberList([one])
 
 
 class TestPhoneNumber(TestCase):
@@ -321,4 +321,3 @@ class TestPhoneNumber(TestCase):
             this.created_ts = None
         with self.assertRaises(eduid_userdb.exceptions.UserDBValueError):
             this.created_ts = True
-

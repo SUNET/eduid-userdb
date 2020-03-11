@@ -18,8 +18,8 @@ class TestUser(TestCase):
         user.set_mail_aliases([])
         user.set_mail_aliases(
             [{
-            'email': 'testmail@example.com',
-            'verified': False,
+                'email': 'testmail@example.com',
+                'verified': False,
             }]
         )
 

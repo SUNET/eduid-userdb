@@ -32,7 +32,6 @@
 #
 from typing import Optional, Mapping, Dict, Any
 
-from pymongo.errors import DuplicateKeyError
 from eduid_userdb.db import BaseDB
 from eduid_userdb.user import User
 from eduid_userdb.userdb import UserDB
@@ -85,7 +84,7 @@ class ResetPasswordStateDB(BaseDB):
         """
         spec = {'email_code.code': email_code}
         states = list(self._get_documents_by_filter(spec,
-                                            raise_on_missing=raise_on_missing))
+                      raise_on_missing=raise_on_missing))
 
         if len(states) == 0:
             return None

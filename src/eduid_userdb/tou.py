@@ -47,8 +47,9 @@ class ToUEvent(Event):
     """
     A record of a user's acceptance of a particular version of the Terms of Use.
     """
+
     def __init__(self, version=None, application=None, created_ts=None, modified_ts=None, event_id=None,
-                 data: Optional[Dict[str, Any]]=None, raise_on_unknown=True):
+                 data: Optional[Dict[str, Any]] = None, raise_on_unknown=True):
         data_in = data
         data = copy.copy(data_in)  # to not modify callers data
 

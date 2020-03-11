@@ -34,7 +34,6 @@ import bson
 from eduid_userdb.testing import MongoTestCase
 import eduid_userdb
 from eduid_userdb import User
-from datetime import datetime
 
 
 class TestUserDB(MongoTestCase):

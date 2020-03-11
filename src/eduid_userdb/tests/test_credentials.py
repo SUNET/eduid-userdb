@@ -9,12 +9,12 @@ from eduid_userdb.credentials import CredentialList, U2F, Password
 
 __author__ = 'lundberg'
 
-#{'passwords': {
+# {'passwords': {
 #    'id': password_id,
 #    'salt': salt,
 #    'source': 'signup',
 #    'created_ts': datetime.datetime.utcnow(),
-#}}
+# }}
 
 _one_dict = {
     'credential_id': '111111111111111111111111',
@@ -38,6 +38,7 @@ _four_dict = {
     'keyhandle': 'firstU2FElement',
     'public_key': 'foo',
 }
+
 
 def _keyid(key):
     return 'sha256:' + sha256(key['keyhandle'].encode('utf-8') +
