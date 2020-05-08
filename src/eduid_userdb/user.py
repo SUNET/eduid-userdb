@@ -60,7 +60,11 @@ class User(object):
     :type  data: dict
     """
 
-    def __init__(self, data: Dict[str, Any], raise_on_unknown: bool = True):
+    def __init__(self, data: Dict[str, Any], raise_on_unknown: bool = True, called_from_classmethod=False):
+        if not called_from_classmethod:
+            # Log warning with traceback here
+            pass
+
         self._data_in = copy.deepcopy(data)  # to not modify callers data
         self._data_orig = copy.deepcopy(data)  # to not modify callers data
         self._data: Dict[str, Any] = dict()
@@ -672,4 +676,8 @@ class User(object):
             user_dict.pop('modified_ts', None)
         else:
             user_dict['modified_ts'] = private_user.modified_ts
-        return cls(data=user_dict)
+        return cls(data=user_dict, called_from_classmethod=True)
+
+    @classmethod
+    def from_dict(cls, data):
+        return cls(data=data, called_from_classmethod=True)
